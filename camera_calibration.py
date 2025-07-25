@@ -32,7 +32,7 @@ class CameraCalibrator:
         
         # Calibration pattern settings (棋盘格参数)
         self.pattern_size = (9, 6)  # Number of inner corners (内角点数量)
-        self.square_size = 25.0     # Size of squares in mm (方格尺寸，毫米)
+        self.square_size = 18       # Size of squares in mm (方格尺寸，毫米)
         
         # Calibration data
         self.calibration_data = {

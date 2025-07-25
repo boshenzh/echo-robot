@@ -19,8 +19,7 @@
 - [x] 实现基于YOLO的实时瓶子检测
 - [x] 自动检测摄像头ID并处理多摄像头
 - [x] 校准摄像头参数以实现精确定位
-- [ ] 提取带置信度分数的2D瓶子位置
-- [ ] 处理边缘情况（多个瓶子、遮挡、光照变化）
+
 
 **主要特性：**
 - 实时视频处理
@@ -30,16 +29,12 @@
 
 ### 2. 轨迹生成
 **文件：`trajectory_planner.py`（待创建）**
-- [ ] 将2D瓶子位置转换为3D世界坐标
 - [ ] 为推动运动生成安全的末端执行器轨迹
-- [ ] 实现碰撞避免算法
 - [ ] 优化路径规划以提高效率和安全性
 - [ ] 添加轨迹可视化工具
 
 **主要特性：**
-- 2D到3D坐标转换
 - 基于物理的轨迹规划
-- 碰撞检测和避免
 - 平滑运动轮廓
 - 可配置的推动参数（距离、角度、速度）
 
@@ -122,7 +117,18 @@ python test_camera_yolo.py
 # 使用标定参数显示世界坐标
 python test_camera_yolo.py --use-calibration --show-coordinates
 ```
+### 轨迹规划器单独测试
+```bash
+# 测试轨迹规划算法和可视化
+python trajectory_planner.py
+```
 
+### 启动完整系统
+```bash
+# 运行集成的视觉轨迹控制系统
+python vision_trajectory_control.py
+```
+TODO:
 ### 运行仿真（MuJoCo）
 ```bash
 python simulate_bottle_push.py --bottle-position x y --visualize

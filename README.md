@@ -1,194 +1,4 @@
-# Echo Robot - Vision Branch
 
-## Overview
-This branch aims to develop a vision-based bottle pushing task on the robot arm LeRobot SO-100. The project integrates computer vision, object detection, trajectory planning, and inverse kinematics to enable autonomous bottle manipulation.
-
-## Project Goals
-The main objective is to create an autonomous system that can:
-- Detect bottles in real-time using computer vision
-- Plan safe trajectories for bottle pushing tasks
-- Execute precise robotic arm movements using inverse kinematics
-- Provide a complete pipeline from perception to action
-
-## Implementation Steps
-
-### 1. Vision and Object Detection
-**File: `test_camera_yolo.py`**
-- [x] Implement real-time YOLO-based bottle detection
-- [ ] Auto-detect camera ID and handle multiple cameras
-- [ ] Calibrate camera parameters for accurate positioning
-- [ ] Extract 2D bottle position with confidence scores
-- [ ] Handle edge cases (multiple bottles, occlusion, lighting variations)
-
-**Key Features:**
-- Real-time video processing
-- Robust bottle detection using YOLOv8
-- Camera auto-discovery and configuration
-- 2D coordinate extraction with pixel-to-world mapping
-
-### 2. Trajectory Generation
-**File: `trajectory_planner.py` (to be created)**
-- [ ] Convert 2D bottle position to 3D world coordinates
-- [ ] Generate safe end-effector trajectories for pushing motion
-- [ ] Implement collision avoidance algorithms
-- [ ] Optimize path planning for efficiency and safety
-- [ ] Add trajectory visualization tools
-
-**Key Features:**
-- 2D to 3D coordinate transformation
-- Physics-based trajectory planning
-- Collision detection and avoidance
-- Smooth motion profiles
-- Configurable push parameters (distance, angle, speed)
-
-### 3. Inverse Kinematics and Control
-**File: `inverse_kinematics.py` (to be created)**
-- [ ] Implement inverse kinematics solver for LeRobot SO-100
-- [ ] Joint angle calculation from end-effector positions
-- [ ] Motion planning and execution
-- [ ] Integration with MuJoCo simulation for testing
-- [ ] Real robot deployment and validation
-
-**Key Features:**
-- Mathematical IK solver
-- Joint limit constraints
-- Smooth interpolation between poses
-- Simulation testing environment
-- Real-time robot control interface
-
-## System Architecture
-
-```
-Camera Input → YOLO Detection → 2D Position
-                     ↓
-Coordinate Transform → 3D Position → Trajectory Planning
-                     ↓
-Inverse Kinematics → Joint Angles → Robot Control
-                     ↓
-MuJoCo Simulation ←→ Real Robot Execution
-```
-
-## Environment Setup
-
-### Prerequisites
-- Python 3.10+
-- CUDA-capable GPU (recommended)
-- Camera hardware
-- LeRobot SO-100 arm
-
-### Installation
-1. Clone the repository and switch to vision branch:
-```bash
-git clone https://github.com/boshenzh/echo-robot.git
-cd echo-robot
-git checkout vision
-```
-
-2. Create conda environment:
-```bash
-conda env create -f environment_lerobot_yolo.yml
-conda activate lerobot-yolo
-```
-
-3. Install additional dependencies:
-```bash
-pip install -r requirements_lerobot_yolo.txt
-```
-
-## Usage
-
-### Testing Camera and YOLO Detection
-```bash
-python test_camera_yolo.py
-```
-
-### Running Simulation (MuJoCo)
-```bash
-python simulate_bottle_push.py --bottle-position x y --visualize
-```
-
-### Executing Real Robot Task
-```bash
-python robot_bottle_push.py --camera-id 0 --safety-mode
-```
-
-## File Structure
-```
-echo-robot/
-├── test_camera_yolo.py           # Camera testing and YOLO detection
-├── trajectory_planner.py         # 3D trajectory generation (TBD)
-├── inverse_kinematics.py         # IK solver and robot control (TBD)
-├── simulate_bottle_push.py       # MuJoCo simulation (TBD)
-├── robot_bottle_push.py          # Main execution script (TBD)
-├── config/
-│   ├── camera_params.yaml        # Camera calibration parameters
-│   ├── robot_config.yaml         # Robot specifications and limits
-│   └── yolo_config.yaml          # YOLO model configuration
-├── models/
-│   └── yolo_bottle_model.pt      # Trained YOLO model for bottles
-└── utils/
-    ├── camera_utils.py           # Camera helper functions
-    ├── coordinate_transform.py   # 2D/3D coordinate utilities
-    └── visualization.py          # Plotting and visualization tools
-```
-
-## Development Status
-
-### Completed ✅
-- Project setup and environment configuration
-- Basic YOLO integration framework
-
-### In Progress 🚧
-- Camera auto-detection and calibration
-- Real-time bottle detection optimization
-
-### Planned 📋
-- 3D trajectory generation
-- Inverse kinematics implementation
-- MuJoCo simulation integration
-- Real robot testing and validation
-
-## Testing Strategy
-
-1. **Unit Tests**: Individual component testing (camera, YOLO, IK solver)
-2. **Integration Tests**: End-to-end pipeline validation
-3. **Simulation Tests**: Safe testing in MuJoCo environment
-4. **Hardware Tests**: Real robot validation with safety protocols
-
-## Safety Considerations
-
-- Emergency stop mechanisms
-- Joint limit enforcement
-- Collision detection
-- Safe workspace boundaries
-- Human-robot interaction protocols
-
-## Contributing
-
-1. Follow the established file structure
-2. Add comprehensive documentation
-3. Include unit tests for new features
-4. Test in simulation before hardware deployment
-5. Maintain safety-first development approach
-
-## Dependencies
-
-Key packages (see `requirements_lerobot_yolo.txt` for complete list):
-- `ultralytics==8.3.169` (YOLO)
-- `opencv-python==4.12.0` (Computer Vision)
-- `torch==2.7.1` (Deep Learning)
-- `open3d==0.19.0` (3D Processing)
-- `numpy`, `scipy`, `matplotlib` (Scientific Computing)
-
-## License
-
-[Add your license information here]
-
-## Contact
-
-[Add contact information for the project team]
-
----
 
 # Echo Robot - 视觉分支
 
@@ -207,8 +17,8 @@ Key packages (see `requirements_lerobot_yolo.txt` for complete list):
 ### 1. 视觉和目标检测
 **文件：`test_camera_yolo.py`**
 - [x] 实现基于YOLO的实时瓶子检测
-- [ ] 自动检测摄像头ID并处理多摄像头
-- [ ] 校准摄像头参数以实现精确定位
+- [x] 自动检测摄像头ID并处理多摄像头
+- [x] 校准摄像头参数以实现精确定位
 - [ ] 提取带置信度分数的2D瓶子位置
 - [ ] 处理边缘情况（多个瓶子、遮挡、光照变化）
 
@@ -289,9 +99,28 @@ pip install -r requirements_lerobot_yolo.txt
 
 ## 使用方法
 
+### 摄像头检测和校准
+```bash
+# 自动检测可用摄像头
+python camera_calibration.py --auto-detect
+
+# 测试摄像头实时画面
+python camera_calibration.py --camera-id 0 --live-test
+
+# 进行摄像头标定（需要9x6棋盘格标定板）
+python camera_calibration.py --camera-id 0 --calibrate
+
+# 测试标定效果
+python camera_calibration.py --camera-id 0 --test
+```
+
 ### 测试摄像头和YOLO检测
 ```bash
+# 基础YOLO检测
 python test_camera_yolo.py
+
+# 使用标定参数显示世界坐标
+python test_camera_yolo.py --use-calibration --show-coordinates
 ```
 
 ### 运行仿真（MuJoCo）
@@ -308,20 +137,23 @@ python robot_bottle_push.py --camera-id 0 --safety-mode
 ```
 echo-robot/
 ├── test_camera_yolo.py           # 摄像头测试和YOLO检测
+├── camera_calibration.py         # 摄像头标定脚本
 ├── trajectory_planner.py         # 3D轨迹生成（待开发）
 ├── inverse_kinematics.py         # IK求解器和机器人控制（待开发）
 ├── simulate_bottle_push.py       # MuJoCo仿真（待开发）
 ├── robot_bottle_push.py          # 主执行脚本（待开发）
+├── CAMERA_CALIBRATION_GUIDE.md   # 摄像头标定详细指南
 ├── config/
-│   ├── camera_params.yaml        # 摄像头标定参数
+│   ├── camera_params.json        # 摄像头标定参数
 │   ├── robot_config.yaml         # 机器人规格和限制
 │   └── yolo_config.yaml          # YOLO模型配置
 ├── models/
 │   └── yolo_bottle_model.pt      # 瓶子训练的YOLO模型
-└── utils/
-    ├── camera_utils.py           # 摄像头辅助函数
-    ├── coordinate_transform.py   # 2D/3D坐标实用程序
-    └── visualization.py          # 绘图和可视化工具
+├── utils/
+│   ├── camera_utils.py           # 摄像头辅助函数
+│   ├── coordinate_transform.py   # 2D/3D坐标实用程序
+│   └── visualization.py          # 绘图和可视化工具
+└── calibration_images/           # 标定图像存储目录
 ```
 
 ## 开发状态
@@ -329,10 +161,12 @@ echo-robot/
 ### 已完成 ✅
 - 项目设置和环境配置
 - 基础YOLO集成框架
+- 摄像头自动检测和校准
+- 摄像头参数标定系统
 
 ### 进行中 🚧
-- 摄像头自动检测和校准
 - 实时瓶子检测优化
+- 坐标转换精度提升
 
 ### 计划中 📋
 - 3D轨迹生成

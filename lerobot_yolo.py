@@ -521,7 +521,7 @@ def main():
         print(f"初始化末端执行器位置: x={current_x:.4f}, y={current_y:.4f}")
         
         # Initialize YOLO and camera
-        model = YOLO("yolo11m-seg.pt")
+        model = YOLO("yolov8n.pt")
         # List available cameras and prompt user
         def list_cameras(max_index=5):
             available = []

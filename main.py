@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """
-MQTT 连接测试脚本
-用于测试与显示屏 T5-E1-IPEX 的 MQTT 通信
+脑机接口与机械臂集成控制程序
+用于脑机接口触发机械臂执行动作
 """
 
 import logging
 import time
 import signal
 import sys
-import json
-import random
-import paho.mqtt.client as mqtt
-from typing import Dict, Any, Optional
+import threading
+import queue
+from typing import Dict, Any, Optional, List, Callable
+
+# --- 本地模块导入 ---
+from robot_controller import RobotController, MoveResult
 
 # --- 配置日志 ---
 logging.basicConfig(
@@ -19,6 +21,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s: %(message)s",
     handlers=[
         logging.StreamHandler(),
+        logging.FileHandler("brain_robot_integration.log")
     ]
 )
 logger = logging.getLogger(__name__)

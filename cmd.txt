@@ -1,0 +1,55 @@
+leader: 
+/dev/ttyACM0
+follower: 
+/dev/ttyACM1
+
+sudo chmod 666 /dev/ttyACM0
+sudo chmod 666 /dev/ttyACM1
+
+calibrate:
+
+teleop:
+python -m lerobot.teleoperate --robot.type=so100_follower --robot.port=/dev/ttyACM1 --robot.id=black --teleop.type=so100_leader --teleop.port=/dev/ttyACM0 --teleop.id=blue
+
+teleop(camera) 
+python -m lerobot.teleoperate --robot.type=so100_follower --robot.port=/dev/ttyACM1 --robot.id=black --teleop.type=so100_leader --teleop.port=/dev/ttyACM0 --teleop.id=blue --display_data=true --robot.cameras="{ front: {type: opencv, index_or_path: /dev/video2, height: 480, width: 640, fps: 30}, wrist: { type: "opencv", index_or_path: /dev/video0, height: 480, width: 640, fps: 30}}"
+
+
+python -m lerobot.scripts.find_joint_limits --robot.type=so100_follower_end_effector --robot.port=/dev/ttyACM0 --robot.id=black --teleop.type=so100_leader --teleop.port=/dev/ttyACM1 --teleop.id=blue 
+
+
+Max ee position [0.3819, 0.4419, 0.6009]
+Min ee position [-0.0766, -0.2435, 0.1964]
+Max joint pos position [59.457, 17.2802, 98.2047, 99.6728, 3.0037, 3.3585]
+Min joint pos position [-100.0, -100.0, -76.5709, 20.409, -0.3663, 1.4274]
+
+wget curl -L https://huggingface.co/daatasets/aractingi/lerobot-example-config-files/resolve/main/env_config_so100.json -O env_config_so100.json
+
+"crop_params_dict": {
+            "observation.images.front": [
+                270,
+                170,
+                90,
+                190
+            ],
+            "observation.images.wrist": [
+                0,
+                0,
+                480,
+                640
+            ]
+        }
+        
+HF_USER=$(huggingface-cli whoami | head -n 1) 
+
+
+INFO:root:Keyboard control wrapper initialized with provided teleop_device.
+Keyboard controls:
+  Arrow keys: Move in X-Y plane
+  Shift and Shift_R: Move in Z axis
+  Right Ctrl and Left Ctrl: Open and close gripper
+  f: End episode with FAILURE
+  s: End episode with SUCCESS
+  r: End episode with RERECORD
+  i: Start/Stop Intervention
+

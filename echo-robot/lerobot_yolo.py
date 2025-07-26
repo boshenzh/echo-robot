@@ -10,6 +10,8 @@ import logging
 import traceback
 import math
 import cv2
+import serial
+import threading
 from ultralytics import YOLO
 
 # 设置日志
@@ -243,6 +245,21 @@ def return_to_start_position(robot, start_positions, kp=0.5, control_freq=50):
 K_pan = -0.006  # radians per pixel (tune as needed)
 K_y = 0.00008   # meters per pixel (tune as needed)
 
+# Global trigger flag
+trigger_received = False
+
+# use for test
+def check_trigger(ser):
+    global trigger_received
+    try:
+        if ser.in_waiting > 0:
+            data = ser.readline().decode('utf-8').strip()
+            if data == 'true':
+                trigger_received = True
+                print("收到触发信号: true")
+    except Exception as e:
+        print(f"串口读取错误: {e}")
+
 # Vision control update function
 def vision_control_update(target_positions, current_x, current_y, model, cap, K_pan, K_y):
     ret, frame = cap.read()
@@ -292,7 +309,7 @@ def vision_control_update(target_positions, current_x, current_y, model, cap, K_
         raise KeyboardInterrupt
     return current_x, current_y
 
-def p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=None, cap=None, vision_mode=False):
+def p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=None, cap=None, vision_mode=False, ser=None):
     """
     P控制循环
     
@@ -319,6 +336,23 @@ def p_control_loop(robot, keyboard, target_positions, start_positions, current_x
     
     while True:
         try:
+            # 检查trigger信号
+            if ser is not None:
+                check_trigger(ser)
+                global trigger_received
+                if trigger_received:
+                    print("trigger")
+                    # for trigger test
+                    target_positions['shoulder_pan'] = 30.0
+                    target_positions['shoulder_lift'] = 20.0
+                    target_positions['elbow_flex'] = -30.0
+                    target_positions['wrist_flex'] = 10.0
+                    target_positions['wrist_roll'] = 0.0
+                    target_positions['gripper'] = 0.0
+                    print("done")
+                    # 重置trigger标志
+                    trigger_received = False
+            
             if vision_mode and model is not None and cap is not None:
                 # Vision-based control
                 current_x, current_y = vision_control_update(
@@ -469,6 +503,14 @@ def main():
         keyboard_config = KeyboardTeleopConfig()
         keyboard = KeyboardTeleop(keyboard_config)
         
+        # 初始化串口用于trigger
+        try:
+            ser = serial.Serial('/dev/ttyACM0', 115200, timeout=0.1)
+            print("串口连接成功，等待trigger信号...")
+        except Exception as e:
+            print(f"串口连接失败: {e}")
+            ser = None
+        
         # 连接设备
         robot.connect()
         keyboard.connect()
@@ -568,11 +610,13 @@ def main():
         
         # 启用视觉控制
         vision_mode = True
-        p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=model, cap=cap, vision_mode=vision_mode)
+        p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=model, cap=cap, vision_mode=vision_mode, ser=ser)
         
         # 断开连接
         robot.disconnect()
         keyboard.disconnect()
+        if ser is not None:
+            ser.close()
         cap.release()
         cv2.destroyAllWindows()
         print("程序结束")

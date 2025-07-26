@@ -1,0 +1,41 @@
+{
+    "break_suggestion_enabled": true,
+    "force_break_enabled": true,
+    "music_enabled": true,
+    "notification_sound": true,
+    "analysis_interval": 1.0,
+    "min_break_duration": 5,
+    "max_continuous_work": 90,
+    "eeg_settings": {
+      "sampling_rate": 128,
+      "buffer_size": 1000,
+      "metrics_buffer_size": 200,
+      "auto_start": false
+    },
+    "break_advisor_settings": {
+      "low_attention_threshold": 0.4,
+      "high_stress_threshold": 0.6,
+      "volatility_threshold": 0.3,
+      "break_suggestion_cooldown": 300,
+      "trend_analysis_window": 60
+    },
+    "music_settings": {
+      "default_volume": 0.4,
+      "fade_in_duration": 5,
+      "fade_out_duration": 3,
+      "auto_volume_adjustment": true,
+      "exclude_recent_tracks": true
+    },
+    "ui_settings": {
+      "theme": "gradient_blue",
+      "chart_update_interval": 500,
+      "notification_duration": 5000,
+      "auto_hide_controls": false
+    },
+    "data_logging": {
+      "save_sessions": true,
+      "save_eeg_data": false,
+      "save_metrics_data": true,
+      "retention_days": 30
+    }
+  }

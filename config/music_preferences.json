@@ -1,0 +1,8 @@
+{
+    "preferred_types": ["focus_ambient", "classical"],
+    "disliked_types": [],
+    "volume_preference": 0.5,
+    "session_length_preference": 30,
+    "adaptive_volume": true,
+    "prefer_instrumental": true
+}

@@ -105,21 +105,13 @@ void lv_port_disp_init(char *device)
 
     lv_display_set_buffers(disp, buf_2_1, buf_2_2, buf_len, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
-    if (sg_display_info.rotation != TUYA_DISPLAY_ROTATION_0) {
-        if (sg_display_info.rotation == TUYA_DISPLAY_ROTATION_90) {
-            lv_display_set_rotation(disp, LV_DISPLAY_ROTATION_90);
-        }else if (sg_display_info.rotation == TUYA_DISPLAY_ROTATION_180){
-            lv_display_set_rotation(disp, LV_DISPLAY_ROTATION_180);
-        }else if(sg_display_info.rotation == TUYA_DISPLAY_ROTATION_270){
-            lv_display_set_rotation(disp, LV_DISPLAY_ROTATION_270);
-        }
+    // 强制设置为横屏模式 (90度旋转)
+    lv_display_set_rotation(disp, LV_DISPLAY_ROTATION_90);
+    PR_NOTICE("Set display to landscape mode (90 degree rotation)");
 
-        PR_NOTICE("rotation:%d", sg_display_info.rotation);
-
-        sg_rotate_buf = __disp_draw_buf_align_alloc(buf_len);
-        if (sg_rotate_buf == NULL) {
-            PR_ERR("lvgl rotate buffer malloc fail!\n");
-        }
+    sg_rotate_buf = __disp_draw_buf_align_alloc(buf_len);
+    if (sg_rotate_buf == NULL) {
+        PR_ERR("lvgl rotate buffer malloc fail!\n");
     }
 }
 

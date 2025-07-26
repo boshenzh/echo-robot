@@ -12,14 +12,17 @@ typedef struct {
     lv_obj_t *progress_ring;       // 圆环进度条
     lv_obj_t *time_label;          // 倒计时显示标签
     lv_obj_t *status_label;        // 状态显示标签
-    lv_obj_t *stop_button;         // 停止按钮
-    lv_obj_t *stop_label;          // 停止按钮文字
+    lv_obj_t *stop_button;         // 停止/继续按钮
+    lv_obj_t *stop_label;          // 停止/继续按钮文字
+    lv_obj_t *finish_button;       // 完成按钮
+    lv_obj_t *finish_label;        // 完成按钮文字
     lv_obj_t *wifi_label;          // WiFi状态显示
     lv_timer_t *timer;             // 倒计时定时器
     
     float total_time;              // 总专注时间（小时）
     float remaining_time;          // 剩余时间（小时）
     bool is_running;               // 是否正在倒计时
+    bool is_paused;                // 是否暂停
 } UI_FOCUS_T;
 
 static UI_FOCUS_T sg_focus = {0};
@@ -31,9 +34,11 @@ static void __ui_create_focus_progress_ring(void);
 static void __ui_create_focus_time_label(void);
 static void __ui_create_focus_status_label(void);
 static void __ui_create_focus_stop_button(void);
+static void __ui_create_focus_finish_button(void);
 static void __ui_create_focus_wifi_status(void);
 static void __focus_timer_cb(lv_timer_t *timer);
 static void __stop_button_event_cb(lv_event_t *e);
+static void __finish_button_event_cb(lv_event_t *e);
 static void __update_time_display(void);
 static void __update_progress_ring(void);
 
@@ -49,6 +54,7 @@ int ui_focus_init(UI_FONT_T *ui_font)
     sg_focus.total_time = 1.0f;      // 默认1小时
     sg_focus.remaining_time = 1.0f;  // 默认1小时
     sg_focus.is_running = false;
+    sg_focus.is_paused = false;
     
     // 创建UI组件
     __ui_create_focus_container();
@@ -57,6 +63,7 @@ int ui_focus_init(UI_FONT_T *ui_font)
     __ui_create_focus_time_label();
     __ui_create_focus_status_label();
     __ui_create_focus_stop_button();
+    __ui_create_focus_finish_button();
     __ui_create_focus_wifi_status();
     
     // 初始隐藏
@@ -75,6 +82,7 @@ void ui_focus_show(void)
     
     // 重置状态
     sg_focus.is_running = true;
+    sg_focus.is_paused = false;
     sg_focus.remaining_time = sg_focus.total_time;
     
     // 重置UI显示
@@ -105,6 +113,7 @@ void ui_focus_hide(void)
     }
     
     sg_focus.is_running = false;
+    sg_focus.is_paused = false;
     PR_INFO("Focus page hidden");
 }
 
@@ -205,36 +214,65 @@ static void __ui_create_focus_status_label(void)
 }
 
 /**
- * @brief 创建focus页面停止按钮
+ * @brief focus页面停止/继续按钮
  */
 static void __ui_create_focus_stop_button(void)
 {
     sg_focus.stop_button = lv_obj_create(sg_focus.container);
     lv_obj_set_size(sg_focus.stop_button, 80, 40);
-    lv_obj_align(sg_focus.stop_button, LV_ALIGN_CENTER, 0, 120);
+    lv_obj_align(sg_focus.stop_button, LV_ALIGN_CENTER, -60, 120);  
     lv_obj_clear_flag(sg_focus.stop_button, LV_OBJ_FLAG_SCROLLABLE);
     
-    // 设置停止按钮样式 - 与圆环颜色一致
+
     lv_obj_set_style_bg_color(sg_focus.stop_button, lv_color_hex(0x529ACC), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(sg_focus.stop_button, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(sg_focus.stop_button, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(sg_focus.stop_button, 20, LV_PART_MAIN);
     
-    // 创建停止按钮文字
+    // 停止按钮文字
     sg_focus.stop_label = lv_label_create(sg_focus.stop_button);
     lv_label_set_text(sg_focus.stop_label, "Stop");
     lv_obj_set_style_text_color(sg_focus.stop_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_font(sg_focus.stop_label, &lv_font_montserrat_14, LV_PART_MAIN);
     lv_obj_center(sg_focus.stop_label);
     
-    // 添加停止按钮点击事件
+    // 停止按钮点击事件
     lv_obj_add_event_cb(sg_focus.stop_button, __stop_button_event_cb, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(sg_focus.stop_button, __stop_button_event_cb, LV_EVENT_RELEASED, NULL);
     lv_obj_add_event_cb(sg_focus.stop_button, __stop_button_event_cb, LV_EVENT_PRESS_LOST, NULL);
 }
 
 /**
- * @brief 创建focus页面WiFi状态显示
+ * @brief focus页面完成按钮
+ */
+static void __ui_create_focus_finish_button(void)
+{
+    sg_focus.finish_button = lv_obj_create(sg_focus.container);
+    lv_obj_set_size(sg_focus.finish_button, 80, 40);
+    lv_obj_align(sg_focus.finish_button, LV_ALIGN_CENTER, 60, 120);  // 向右放置
+    lv_obj_clear_flag(sg_focus.finish_button, LV_OBJ_FLAG_SCROLLABLE);
+    
+    // 完成按钮样式 
+    lv_obj_set_style_bg_color(sg_focus.finish_button, lv_color_hex(0x529ACC), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(sg_focus.finish_button, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(sg_focus.finish_button, 0, LV_PART_MAIN);
+    lv_obj_set_style_radius(sg_focus.finish_button, 20, LV_PART_MAIN);
+    
+    // 完成按钮文字
+    sg_focus.finish_label = lv_label_create(sg_focus.finish_button);
+    lv_label_set_text(sg_focus.finish_label, "Finish");
+    lv_obj_set_style_text_color(sg_focus.finish_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_font(sg_focus.finish_label, &lv_font_montserrat_14, LV_PART_MAIN);
+    lv_obj_center(sg_focus.finish_label);
+    
+    // 完成按钮点击事件
+    lv_obj_add_event_cb(sg_focus.finish_button, __finish_button_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(sg_focus.finish_button, __finish_button_event_cb, LV_EVENT_RELEASED, NULL);
+    lv_obj_add_event_cb(sg_focus.finish_button, __finish_button_event_cb, LV_EVENT_PRESS_LOST, NULL);
+}
+
+/**
+ * @brief focus页面WiFi状态显示
  */
 static void __ui_create_focus_wifi_status(void)
 {
@@ -256,7 +294,7 @@ static void __focus_timer_cb(lv_timer_t *timer)
 {
     (void)timer;
     
-    if (!sg_focus.is_running) {
+    if (!sg_focus.is_running || sg_focus.is_paused) {
         return;
     }
     
@@ -277,6 +315,7 @@ static void __focus_timer_cb(lv_timer_t *timer)
         // 更新状态显示
         lv_label_set_text(sg_focus.status_label, "Time's Up!");
         lv_label_set_text(sg_focus.stop_label, "Done");
+        lv_label_set_text(sg_focus.finish_label, "Done");
         
         PR_INFO("Focus session completed");
     }
@@ -287,21 +326,35 @@ static void __focus_timer_cb(lv_timer_t *timer)
 }
 
 /**
- * @brief 停止按钮事件回调
+ * @brief 停止/继续按钮事件回调
  */
 static void __stop_button_event_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     
     if (code == LV_EVENT_PRESSED) {
-        PR_INFO("Stop button pressed");
+        PR_INFO("Stop/Continue button pressed");
         
     } else if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
-        PR_INFO("Stop button released");
+        PR_INFO("Stop/Continue button released");
         
-        if (sg_focus.is_running) {
-            // 如果正在倒计时，停止它
-            PR_INFO("Stopping focus session");
+        if (sg_focus.is_paused) {
+            // 如果已暂停，继续倒计时
+            PR_INFO("Continuing focus session");
+            sg_focus.is_paused = false;
+            sg_focus.is_running = true;
+            
+            // 重新创建定时器
+            sg_focus.timer = lv_timer_create(__focus_timer_cb, 1000, NULL);
+            
+            // 更新按钮文字和状态
+            lv_label_set_text(sg_focus.stop_label, "Stop");
+            lv_label_set_text(sg_focus.status_label, "");
+            
+        } else if (sg_focus.is_running) {
+            // 如果正在倒计时，暂停
+            PR_INFO("Pausing focus session");
+            sg_focus.is_paused = true;
             sg_focus.is_running = false;
             
             // 停止定时器
@@ -310,16 +363,49 @@ static void __stop_button_event_cb(lv_event_t *e)
                 sg_focus.timer = NULL;
             }
             
-            // 更新状态显示
-            lv_label_set_text(sg_focus.status_label, "Stopped");
+            // 更新按钮文字和状态
+            lv_label_set_text(sg_focus.stop_label, "Continue");
+            lv_label_set_text(sg_focus.status_label, "");
             
-            // 返回导航页面
-            ui_manager_show_navigation_page();
         } else {
             // 如果倒计时已结束，返回导航页面
             PR_INFO("Focus session completed, returning to navigation");
             ui_manager_show_navigation_page();
         }
+    }
+}
+
+/**
+ * @brief 完成按钮事件回调
+ */
+static void __finish_button_event_cb(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    
+    if (code == LV_EVENT_PRESSED) {
+        PR_INFO("Finish button pressed");
+        
+    } else if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
+        PR_INFO("Finish button released");
+        
+        // 停止定时器
+        if (sg_focus.timer) {
+            lv_timer_del(sg_focus.timer);
+            sg_focus.timer = NULL;
+        }
+        
+        // 重置状态
+        sg_focus.is_running = false;
+        sg_focus.is_paused = false;
+        
+        // 更新状态显示
+        lv_label_set_text(sg_focus.status_label, "Finished");
+        lv_label_set_text(sg_focus.stop_label, "Done");
+        
+        PR_INFO("Focus session finished by user");
+        
+        // 返回导航页面
+        ui_manager_show_navigation_page();
     }
 }
 
@@ -332,7 +418,7 @@ static void __update_time_display(void)
         return;
     }
     
-    // 将小时转换为时分秒
+
     int total_seconds = (int)(sg_focus.remaining_time * 3600);
     int hours = total_seconds / 3600;
     int minutes = (total_seconds % 3600) / 60;
@@ -371,7 +457,7 @@ void ui_focus_set_network(char *wifi_icon)
         return;
     }
     
-    // 更新focus页面的WiFi图标
+    // focus页面的WiFi图标
     if (sg_focus.wifi_label) {
         lv_label_set_text(sg_focus.wifi_label, wifi_icon);
     }

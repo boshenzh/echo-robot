@@ -50,6 +50,11 @@ package/vscode/data/ide_serial"
     download_url = f"{host}/{package}"
 
     logger.info("Downloading tyutool_cli ...")
+    
+    # 禁用 SSL 证书验证
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
+    
     urllib.request.urlretrieve(download_url, download_file)
     with tarfile.open(download_file, 'r:gz') as tar:
         tar.extractall(path=tyutool_root)

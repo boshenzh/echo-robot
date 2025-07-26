@@ -3,6 +3,7 @@
 简化的键盘控制SO100/SO101机器人
 修复了动作格式转换问题
 使用P控制，键盘只改变目标关节角度
+添加串口trigger功能，监听"true"信号触发预设动作
 """
 
 import time
@@ -10,11 +11,43 @@ import logging
 import traceback
 import math
 import cv2
+import serial
+import threading
 from ultralytics import YOLO
 
 # 设置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# 串口配置
+SERIAL_CONFIG = {
+    "port": "/dev/ttyACM0",  # T5-E1-IPEX板子的串口
+    "baud_rate": 115200,
+    "timeout": 1.0
+}
+
+# Trigger配置
+TRIGGER_CONFIG = {
+    "min_interval": 2.0,     # 最小触发间隔(秒)
+    "action_timeout": 10.0,  # 动作执行超时(秒)
+    "enable_visual": True    # 是否启用视觉辅助
+}
+
+# 预设位置配置
+PRESET_POSITIONS = {
+    "grasp_position": {"x": 0.15, "y": 0.10},    # 抓取位置
+    "home_position": {"x": 0.1629, "y": 0.1131}, # 起始位置
+    "drop_position": {"x": 0.20, "y": 0.05}      # 放置位置
+}
+
+# Trigger状态管理
+trigger_state = {
+    "triggered": False,      # 是否已触发
+    "executing": False,      # 是否正在执行动作
+    "current_step": 0,       # 当前执行步骤
+    "last_trigger_time": 0,  # 上次触发时间
+    "serial_connected": False # 串口连接状态
+}
 
 # 关节校准系数 - 手动编辑
 # 格式: [关节名称, 零位置偏移(度), 缩放系数]
@@ -45,6 +78,153 @@ def apply_joint_calibration(joint_name, raw_position):
             calibrated_position = (raw_position - offset) * scale
             return calibrated_position
     return raw_position  # 如果没找到校准系数，返回原始值
+
+def init_serial_connection():
+    """
+    初始化串口连接
+    
+    Returns:
+        ser: 串口对象，如果连接失败返回None
+    """
+    try:
+        ser = serial.Serial(
+            port=SERIAL_CONFIG["port"],
+            baudrate=SERIAL_CONFIG["baud_rate"],
+            timeout=SERIAL_CONFIG["timeout"]
+        )
+        trigger_state["serial_connected"] = True
+        logger.info(f"串口连接成功: {SERIAL_CONFIG['port']}")
+        return ser
+    except Exception as e:
+        logger.error(f"串口连接失败: {e}")
+        trigger_state["serial_connected"] = False
+        return None
+
+def check_serial_trigger(ser):
+    """
+    检查串口是否有'true'信号
+    
+    Args:
+        ser: 串口对象
+    
+    Returns:
+        bool: 是否检测到trigger信号
+    """
+    if not ser or not trigger_state["serial_connected"]:
+        return False
+    
+    try:
+        if ser.in_waiting:
+            data = ser.readline().decode('utf-8').strip()
+            logger.info(f"收到串口数据: {data}")
+            if data == "true":
+                current_time = time.time()
+                # 检查最小触发间隔
+                if current_time - trigger_state["last_trigger_time"] >= TRIGGER_CONFIG["min_interval"]:
+                    trigger_state["last_trigger_time"] = current_time
+                    logger.info("检测到trigger信号: true")
+                    return True
+                else:
+                    logger.info("触发间隔太短，忽略trigger信号")
+        return False
+    except Exception as e:
+        logger.error(f"串口读取错误: {e}")
+        return False
+
+def move_to_preset_position(robot, target_positions, preset_name, current_x, current_y):
+    """
+    移动到预设位置
+    
+    Args:
+        robot: 机器人实例
+        target_positions: 目标位置字典
+        preset_name: 预设位置名称
+        current_x: 当前x坐标
+        current_y: 当前y坐标
+    
+    Returns:
+        tuple: (new_x, new_y) 新的坐标位置
+    """
+    if preset_name not in PRESET_POSITIONS:
+        logger.error(f"预设位置 {preset_name} 不存在")
+        return current_x, current_y
+    
+    preset = PRESET_POSITIONS[preset_name]
+    new_x, new_y = preset["x"], preset["y"]
+    
+    # 使用逆运动学计算关节角度
+    joint2_target, joint3_target = inverse_kinematics(new_x, new_y)
+    
+    # 更新目标位置
+    target_positions['shoulder_lift'] = joint2_target
+    target_positions['elbow_flex'] = joint3_target
+    
+    logger.info(f"移动到预设位置 {preset_name}: x={new_x:.4f}, y={new_y:.4f}")
+    logger.info(f"目标关节角度: joint2={joint2_target:.2f}, joint3={joint3_target:.2f}")
+    
+    return new_x, new_y
+
+def execute_trigger_sequence(robot, target_positions, current_x, current_y):
+    """
+    执行trigger触发的动作序列
+    
+    Args:
+        robot: 机器人实例
+        target_positions: 目标位置字典
+        current_x: 当前x坐标
+        current_y: 当前y坐标
+    
+    Returns:
+        tuple: (new_x, new_y) 执行后的坐标位置
+    """
+    logger.info("开始执行trigger动作序列")
+    trigger_state["executing"] = True
+    trigger_state["current_step"] = 1
+    
+    try:
+        # 步骤1: 移动到抓取位置
+        logger.info("步骤1: 移动到抓取位置")
+        current_x, current_y = move_to_preset_position(
+            robot, target_positions, "grasp_position", current_x, current_y
+        )
+        
+        # 等待到达位置
+        time.sleep(3.0)
+        
+        # 步骤2: 执行抓取动作（关闭夹爪）
+        logger.info("步骤2: 执行抓取动作")
+        target_positions['gripper'] = -50  # 关闭夹爪
+        time.sleep(2.0)
+        
+        # 步骤3: 移动到放置位置
+        logger.info("步骤3: 移动到放置位置")
+        current_x, current_y = move_to_preset_position(
+            robot, target_positions, "drop_position", current_x, current_y
+        )
+        
+        # 等待到达位置
+        time.sleep(3.0)
+        
+        # 步骤4: 释放物体（打开夹爪）
+        logger.info("步骤4: 释放物体")
+        target_positions['gripper'] = 0  # 打开夹爪
+        time.sleep(2.0)
+        
+        # 步骤5: 返回起始位置
+        logger.info("步骤5: 返回起始位置")
+        current_x, current_y = move_to_preset_position(
+            robot, target_positions, "home_position", current_x, current_y
+        )
+        
+        logger.info("trigger动作序列执行完成")
+        
+    except Exception as e:
+        logger.error(f"执行trigger动作序列时出错: {e}")
+    finally:
+        trigger_state["executing"] = False
+        trigger_state["current_step"] = 0
+    
+    return current_x, current_y
 
 def inverse_kinematics(x, y, l1=0.1159, l2=0.1350):
     """
@@ -292,7 +472,7 @@ def vision_control_update(target_positions, current_x, current_y, model, cap, K_
         raise KeyboardInterrupt
     return current_x, current_y
 
-def p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=None, cap=None, vision_mode=False):
+def p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=None, cap=None, vision_mode=False, ser=None):
     """
     P控制循环
     
@@ -308,6 +488,7 @@ def p_control_loop(robot, keyboard, target_positions, start_positions, current_x
         model: YOLO模型实例（可选）
         cap: 摄像头实例（可选）
         vision_mode: 是否启用视觉控制
+        ser: 串口对象（可选）
     """
     control_period = 1.0 / control_freq
     
@@ -316,9 +497,20 @@ def p_control_loop(robot, keyboard, target_positions, start_positions, current_x
     pitch_step = 1  # pitch调整步长
     
     print(f"开始P控制循环，控制频率: {control_freq}Hz，比例增益: {kp}")
+    if ser:
+        print("串口trigger功能已启用")
     
     while True:
         try:
+            # 检查串口trigger信号
+            if ser and not trigger_state["executing"]:
+                if check_serial_trigger(ser):
+                    logger.info("触发串口动作序列")
+                    current_x, current_y = execute_trigger_sequence(
+                        robot, target_positions, current_x, current_y
+                    )
+                    continue  # 跳过键盘和视觉控制，继续下一个循环
+            
             if vision_mode and model is not None and cap is not None:
                 # Vision-based control
                 current_x, current_y = vision_control_update(
@@ -552,15 +744,30 @@ def main():
         print("- X: 退出程序（先回到起始位置）")
         print("- ESC: 退出程序")
         print("="*50)
-        print("注意: 机器人会持续移动到目标位置")
+        print("串口trigger功能:")
+        print(f"- 监听端口: {SERIAL_CONFIG['port']}")
+        print("- 发送 'true' 触发预设动作序列")
+        print("- 最小触发间隔: {TRIGGER_CONFIG['min_interval']}秒")
+        print("="*50)
+        print("开始移动")
+        
+        # 初始化串口连接
+        ser = init_serial_connection()
+        if ser:
+            print("串口连接成功，trigger功能已启用")
+        else:
+            print("串口连接失败，trigger功能不可用")
         
         # 启用视觉控制
         vision_mode = True
-        p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=model, cap=cap, vision_mode=vision_mode)
+        p_control_loop(robot, keyboard, target_positions, start_positions, current_x, current_y, kp=0.5, control_freq=50, model=model, cap=cap, vision_mode=vision_mode, ser=ser)
         
         # 断开连接
         robot.disconnect()
         keyboard.disconnect()
+        if ser:
+            ser.close()
+            print("串口连接已关闭")
         cap.release()
         cv2.destroyAllWindows()
         print("程序结束")

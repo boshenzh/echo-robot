@@ -522,26 +522,38 @@ def main():
         
         # Initialize YOLO and camera
         model = YOLO("yolov8n.pt")
-        # List available cameras and prompt user
-        def list_cameras(max_index=5):
-            available = []
-            for idx in range(max_index):
-                cap_test = cv2.VideoCapture(idx)
-                if cap_test.isOpened():
-                    available.append(idx)
-                    cap_test.release()
-            return available
-        cameras = list_cameras()
-        if not cameras:
-            print("No cameras found!")
-            return
-        print(f"Available cameras: {cameras}")
-        selected = int(input(f"Select camera index from {cameras}: "))
-        cap = cv2.VideoCapture(selected)
-        if not cap.isOpened():
-            print("Camera not found!")
-            return
         
+        # Direct camera selection (fastest approach)
+        camera_input = input("Enter camera ID (0/1/2) or press Enter for camera 0: ").strip()
+        selected = int(camera_input) if camera_input.isdigit() else 0
+        
+        print(f"📷 Connecting to camera {selected}...")
+        cap = cv2.VideoCapture(selected)
+        
+        if cap.isOpened():
+            # Quick test read
+            ret, _ = cap.read()
+            if ret:
+                # Set camera properties
+                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                print(f"✅ Camera {selected} ready!")
+                vision_mode = True
+            else:
+                print(f"❌ Camera {selected} cannot read frames")
+                cap.release()
+                cap = None
+                vision_mode = False
+        else:
+            print(f"❌ Camera {selected} not available")
+            cap = None
+            vision_mode = False
+        
+        if not vision_mode:
+            print("⚠️  Continuing in keyboard-only mode")
+            model = None
+
         print("键盘控制说明:")
         print("- Q/A: 关节1 (shoulder_pan) 减少/增加")
         print("- W/S: 控制末端执行器x坐标 (joint2+3)")
@@ -575,4 +587,4 @@ def main():
         print("4. 机器人是否已正确配置")
 
 if __name__ == "__main__":
-    main() 
+    main()

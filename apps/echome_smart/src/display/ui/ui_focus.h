@@ -4,17 +4,17 @@
 #include "lvgl.h"
 #include "ui_display.h"
 
-// Focus页面初始化
+// Focus page initialization
 int ui_focus_init(UI_FONT_T *ui_font);
 
-// Focus页面显示/隐藏
+// Focus page show/hide
 void ui_focus_show(void);
 void ui_focus_hide(void);
 
-// 设置专注时间
+// Set focus time
 void ui_focus_set_time(float time);
 
-// 设置WiFi状态
+// Set WiFi status
 void ui_focus_set_network(char *wifi_icon);
 
 #endif // __UI_FOCUS_H__ 

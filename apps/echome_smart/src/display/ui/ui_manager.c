@@ -7,15 +7,15 @@
 static UI_MANAGER_T sg_ui_manager = {0};
 
 /**
- * @brief 初始化页面管理器
+ * @brief Initialize page manager
  */
 int ui_manager_init(UI_FONT_T *ui_font)
 {
-    // 清空状态
+    // Clear state
     memset(&sg_ui_manager, 0, sizeof(UI_MANAGER_T));
     sg_ui_manager.current_page = UI_PAGE_WAKEUP;
     
-    // 初始化各个页面
+    // Initialize each page
     int ret = ui_wakeup_init(ui_font);
     if (ret != 0) {
         PR_ERR("Failed to init wakeup page");
@@ -42,7 +42,7 @@ int ui_manager_init(UI_FONT_T *ui_font)
 }
 
 /**
- * @brief 切换页面
+ * @brief Switch to target page
  */
 void ui_manager_switch_page(UI_PAGE_E target_page)
 {
@@ -56,7 +56,7 @@ void ui_manager_switch_page(UI_PAGE_E target_page)
         return;
     }
     
-    // 隐藏当前页面
+    // Hide current page
     switch (sg_ui_manager.current_page) {
     case UI_PAGE_WAKEUP:
         ui_wakeup_hide();
@@ -71,7 +71,7 @@ void ui_manager_switch_page(UI_PAGE_E target_page)
         break;
     }
     
-    // 显示目标页面
+    // Show target page
     switch (target_page) {
     case UI_PAGE_WAKEUP:
         ui_wakeup_show_wait();
@@ -91,7 +91,7 @@ void ui_manager_switch_page(UI_PAGE_E target_page)
 }
 
 /**
- * @brief 获取当前页面
+ * @brief Get current page
  */
 UI_PAGE_E ui_manager_get_current_page(void)
 {
@@ -99,7 +99,7 @@ UI_PAGE_E ui_manager_get_current_page(void)
 }
 
 /**
- * @brief 检查页面是否可见
+ * @brief Check if page is visible
  */
 bool ui_manager_is_page_visible(UI_PAGE_E page)
 {
@@ -110,7 +110,7 @@ bool ui_manager_is_page_visible(UI_PAGE_E page)
 }
 
 /**
- * @brief 显示wakeup页面
+ * @brief Show wakeup page
  */
 void ui_manager_show_wakeup_page(void)
 {
@@ -118,7 +118,7 @@ void ui_manager_show_wakeup_page(void)
 }
 
 /**
- * @brief 显示navigation页面
+ * @brief Show navigation page
  */
 void ui_manager_show_navigation_page(void)
 {
@@ -126,7 +126,7 @@ void ui_manager_show_navigation_page(void)
 }
 
 /**
- * @brief 显示focus页面
+ * @brief Show focus page
  */
 void ui_manager_show_focus_page(void)
 {

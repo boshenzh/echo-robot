@@ -6,7 +6,7 @@
 #include "tal_api.h"
 #include <stdio.h>
 
-// Navigation页面相关宏定义
+// Navigation page related macro definitions
 #define NAV_START_BUTTON_SIZE 120
 #define NAV_START_BUTTON_RADIUS 60
 #define NAV_SLIDER_WIDTH 200
@@ -14,22 +14,22 @@
 #define NAV_TIME_MIN 0.0f
 #define NAV_TIME_MAX 2.0f
 
-// Navigation页面UI结构体
+// Navigation page UI structure
 typedef struct {
-    lv_obj_t *container;           // 页面容器
-    lv_obj_t *background;          // 背景
-    lv_obj_t *nav_start_button;    // 开始按钮
-    lv_obj_t *nav_start_label;     // 开始按钮文字
-    lv_obj_t *nav_time_slider;     // 时间slider
-    lv_obj_t *nav_time_label;      // 时间显示标签
-    lv_obj_t *nav_wifi_label;      // WiFi状态显示
+    lv_obj_t *container;           // Page container
+    lv_obj_t *background;          // Background
+    lv_obj_t *nav_start_button;    // Start button
+    lv_obj_t *nav_start_label;     // Start button text
+    lv_obj_t *nav_time_slider;     // Time slider
+    lv_obj_t *nav_time_label;      // Time display label
+    lv_obj_t *nav_wifi_label;      // WiFi status display
     
-    float selected_time;               // 选择的专注时间（小时）
+    float selected_time;               // Selected focus time (hours)
 } UI_NAVIGATION_T;
 
 static UI_NAVIGATION_T sg_nav = {0};
 
-// 前向声明
+// Forward declarations
 static void __ui_create_navigation_container(void);
 static void __ui_create_navigation_background(void);
 static void __ui_create_navigation_start_button(void);
@@ -40,26 +40,24 @@ static void __time_slider_event_cb(lv_event_t *e);
 static lv_color_t __get_slider_gradient_color(float value);
 
 /**
- * @brief 初始化navigation页面
+ * @brief Initialize navigation page
  */
 int ui_navigation_init(UI_FONT_T *ui_font)
 {
-    (void)ui_font; // navigation页面不使用字体
+    (void)ui_font; // Navigation page doesn't use fonts
     
-    // 清空状态
+    // Clear state
     memset(&sg_nav, 0, sizeof(UI_NAVIGATION_T));
-    sg_nav.selected_time = 1.0f;  // 默认1小时
+    sg_nav.selected_time = 1.0f;  // Default 1 hour
     
-    // 创建UI组件
+    // Create UI components
     __ui_create_navigation_container();
     __ui_create_navigation_background();
     __ui_create_navigation_start_button();
     __ui_create_navigation_time_slider();
     __ui_create_navigation_wifi_status();
     
-
-    
-    // 初始隐藏
+    // Initially hidden
     lv_obj_add_flag(sg_nav.container, LV_OBJ_FLAG_HIDDEN);
     
     PR_INFO("Navigation page initialized");
@@ -67,7 +65,7 @@ int ui_navigation_init(UI_FONT_T *ui_font)
 }
 
 /**
- * @brief 显示navigation页面
+ * @brief Show navigation page
  */
 void ui_navigation_show(void)
 {
@@ -76,7 +74,7 @@ void ui_navigation_show(void)
 }
 
 /**
- * @brief 隐藏navigation页面
+ * @brief Hide navigation page
  */
 void ui_navigation_hide(void)
 {
@@ -85,7 +83,7 @@ void ui_navigation_hide(void)
 }
 
 /**
- * @brief 获取选择的专注时间
+ * @brief Get selected focus time
  */
 float ui_navigation_get_selected_time(void)
 {
@@ -93,7 +91,7 @@ float ui_navigation_get_selected_time(void)
 }
 
 /**
- * @brief 设置专注时间
+ * @brief Set focus time
  */
 void ui_navigation_set_selected_time(float time)
 {
@@ -105,7 +103,7 @@ void ui_navigation_set_selected_time(float time)
 }
 
 /**
- * @brief 创建navigation页面容器
+ * @brief Create navigation page container
  */
 static void __ui_create_navigation_container(void)
 {
@@ -118,7 +116,7 @@ static void __ui_create_navigation_container(void)
 }
 
 /**
- * @brief 创建navigation页面背景
+ * @brief Create navigation page background
  */
 static void __ui_create_navigation_background(void)
 {
@@ -132,36 +130,36 @@ static void __ui_create_navigation_background(void)
 }
 
 /**
- * @brief 创建开始按钮
+ * @brief Create start button
  */
 static void __ui_create_navigation_start_button(void)
 {
     sg_nav.nav_start_button = lv_obj_create(sg_nav.container);
     lv_obj_set_size(sg_nav.nav_start_button, NAV_START_BUTTON_SIZE, NAV_START_BUTTON_SIZE);
-    lv_obj_align(sg_nav.nav_start_button, LV_ALIGN_CENTER, 0, -30);  // button坐标
+    lv_obj_align(sg_nav.nav_start_button, LV_ALIGN_CENTER, 0, -30);  // button coordinates
     lv_obj_clear_flag(sg_nav.nav_start_button, LV_OBJ_FLAG_SCROLLABLE);
     
-    // 设置开始按钮样式
+    // Set start button style
     lv_obj_set_style_bg_color(sg_nav.nav_start_button, lv_color_hex(0x529ACC), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(sg_nav.nav_start_button, LV_OPA_30, LV_PART_MAIN);
     lv_obj_set_style_border_width(sg_nav.nav_start_button, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(sg_nav.nav_start_button, NAV_START_BUTTON_RADIUS, LV_PART_MAIN);
     
-    // 创建开始按钮文字
+    // Create start button text
     sg_nav.nav_start_label = lv_label_create(sg_nav.nav_start_button);
     lv_label_set_text(sg_nav.nav_start_label, "Start");
     lv_obj_set_style_text_color(sg_nav.nav_start_label, lv_color_hex(0x333333), LV_PART_MAIN);
     lv_obj_set_style_text_font(sg_nav.nav_start_label, &lv_font_montserrat_24, LV_PART_MAIN);
     lv_obj_center(sg_nav.nav_start_label);
     
-    // 添加开始按钮点击事件
+    // Add start button click event
     lv_obj_add_event_cb(sg_nav.nav_start_button, __start_button_event_cb, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(sg_nav.nav_start_button, __start_button_event_cb, LV_EVENT_RELEASED, NULL);
     lv_obj_add_event_cb(sg_nav.nav_start_button, __start_button_event_cb, LV_EVENT_PRESS_LOST, NULL);
 }
 
 /**
- * @brief 创建时间slider
+ * @brief Create time slider
  */
 static void __ui_create_navigation_time_slider(void)
 {
@@ -169,24 +167,24 @@ static void __ui_create_navigation_time_slider(void)
     lv_obj_set_size(sg_nav.nav_time_slider, NAV_SLIDER_WIDTH, NAV_SLIDER_HEIGHT);
     lv_obj_align(sg_nav.nav_time_slider, LV_ALIGN_BOTTOM_MID, 0, -40);
     lv_slider_set_range(sg_nav.nav_time_slider, 0, 100);
-    lv_slider_set_value(sg_nav.nav_time_slider, 50, LV_ANIM_OFF);  // 默认1.0小时
+    lv_slider_set_value(sg_nav.nav_time_slider, 50, LV_ANIM_OFF);  // Default 1.0 hour
     
-    // 设置slider样式
+    // Set slider style
     lv_obj_set_style_bg_color(sg_nav.nav_time_slider, lv_color_hex(0xE0E0E0), LV_PART_MAIN);
     lv_obj_set_style_bg_color(sg_nav.nav_time_slider, lv_color_hex(0xB0DAF0), LV_PART_INDICATOR);
     lv_obj_set_style_bg_color(sg_nav.nav_time_slider, lv_color_hex(0x529ACC), LV_PART_KNOB);
     
-    // 添加slider事件
+    // Add slider events
     lv_obj_add_event_cb(sg_nav.nav_time_slider, __time_slider_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
     lv_obj_add_event_cb(sg_nav.nav_time_slider, __time_slider_event_cb, LV_EVENT_PRESSING, NULL);
     
-    // 创建时间显示标签
+    // Create time display label
     sg_nav.nav_time_label = lv_label_create(sg_nav.container);
     lv_obj_set_style_text_color(sg_nav.nav_time_label, lv_color_hex(0x333333), LV_PART_MAIN);
     lv_obj_set_style_text_font(sg_nav.nav_time_label, &lv_font_montserrat_14, LV_PART_MAIN);
     lv_obj_align(sg_nav.nav_time_label, LV_ALIGN_BOTTOM_MID, 0, -80);
     
-    // 设置初始时间显示
+    // Set initial time display
     char time_str[16];
     int hours = (int)sg_nav.selected_time;
     int minutes = (int)((sg_nav.selected_time - hours) * 60);
@@ -205,7 +203,7 @@ static void __ui_create_navigation_time_slider(void)
 }
 
 /**
- * @brief 创建navigation页面wifi状态显示
+ * @brief Create navigation page WiFi status display
  */
 static void __ui_create_navigation_wifi_status(void)
 {
@@ -216,14 +214,14 @@ static void __ui_create_navigation_wifi_status(void)
     extern const lv_font_t font_awesome_16_4;
     lv_obj_set_style_text_font(sg_nav.nav_wifi_label, &font_awesome_16_4, LV_PART_MAIN);
     
-    lv_obj_set_size(sg_nav.nav_wifi_label, 30, 30);  // 设置固定大小确保可见
-    lv_obj_align(sg_nav.nav_wifi_label, LV_ALIGN_TOP_RIGHT, -15, 15);  // 与wait页面保持一致
+    lv_obj_set_size(sg_nav.nav_wifi_label, 30, 30);  // Set fixed size to ensure visibility
+    lv_obj_align(sg_nav.nav_wifi_label, LV_ALIGN_TOP_RIGHT, -15, 15);  // Keep consistent with wait page
 }
 
-// 动画相关函数已移除
+
 
 /**
- * @brief start button事件回调
+ * @brief Start button event callback
  */
 static void __start_button_event_cb(lv_event_t *e)
 {
@@ -248,29 +246,21 @@ static void __start_button_event_cb(lv_event_t *e)
             PR_INFO("Jumping to focus page with %dmin", minutes);
         }
         
-        // 设置专注页面的时间
+        // Set focus page time
         ui_focus_set_time(sg_nav.selected_time);
         
-        // 通过串口发送布尔值到电脑
-        const char *serial_msg = "true\n";
+        // Send to computer via UART
+        const char *serial_msg = "start\n";
         tal_uart_write(TUYA_UART_NUM_0, (const uint8_t *)serial_msg, strlen(serial_msg));
         PR_INFO("Serial message sent: %s", serial_msg);
-        
-        // 发送MQTT start消息 - 暂时注释掉用于调试
-        // extern int mqtt_manager_publish_start(bool start_value);
-        // int ret = mqtt_manager_publish_start(true);
-        // if (ret == 0) {
-        //     PR_INFO("MQTT start message sent successfully");
-        // } else {
-        //     PR_WARN("Failed to send MQTT start message: %d", ret);
-        // }
+
         
         ui_manager_show_focus_page();
     }
 }
 
 /**
- * @brief 时间slider事件回调
+ * @brief Time slider event callback
  */
 static void __time_slider_event_cb(lv_event_t *e)
 {
@@ -304,7 +294,7 @@ static void __time_slider_event_cb(lv_event_t *e)
 }
 
 /**
- * @brief 获取slider渐变颜色
+ * @brief Get slider gradient color
  */
 static lv_color_t __get_slider_gradient_color(float value)
 {
@@ -318,7 +308,7 @@ static lv_color_t __get_slider_gradient_color(float value)
 }
 
 /**
- * @brief 设置WiFi状态
+ * @brief Set WiFi status
  */
 void ui_navigation_set_network(char *wifi_icon)
 {
@@ -326,7 +316,7 @@ void ui_navigation_set_network(char *wifi_icon)
         return;
     }
     
-    // 更新navigation页面的WiFi图标
+    // Update navigation page WiFi icon
     if (sg_nav.nav_wifi_label) {
         lv_label_set_text(sg_nav.nav_wifi_label, wifi_icon);
     }

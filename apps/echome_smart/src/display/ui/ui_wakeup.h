@@ -27,9 +27,9 @@ extern "C" {
 ***********************typedef define***********************
 ***********************************************************/
 typedef enum {
-    WAKEUP_STATE_HIDDEN = 0,    // 隐藏状态
-    WAKEUP_STATE_WAIT,          // 待机状态：显示圆形按钮，背景#CEFF7E
-    WAKEUP_STATE_WAKE_ANIMATION, // 动画状态：按钮左右移动动画
+    WAKEUP_STATE_HIDDEN = 0,    // Hidden state
+    WAKEUP_STATE_WAIT,          // Standby state: display circular button, background #CEFF7E
+    WAKEUP_STATE_WAKE_ANIMATION, // Animation state: button left-right movement animation
     WAKEUP_STATE_MAX
 } WAKEUP_STATE_E;
 

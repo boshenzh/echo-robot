@@ -4,20 +4,20 @@
 #include "lvgl.h"
 #include "ui_display.h"
 
-// Navigation页面初始化
+// Navigation page initialization
 int ui_navigation_init(UI_FONT_T *ui_font);
 
-// Navigation页面显示/隐藏
+// Navigation page show/hide
 void ui_navigation_show(void);
 void ui_navigation_hide(void);
 
-// 获取选择的专注时间
+// Get selected focus time
 float ui_navigation_get_selected_time(void);
 
-// 设置专注时间
+// Set focus time
 void ui_navigation_set_selected_time(float time);
 
-// 设置WiFi状态
+// Set WiFi status
 void ui_navigation_set_network(char *wifi_icon);
 
 #endif // __UI_NAVIGATION_H__ 

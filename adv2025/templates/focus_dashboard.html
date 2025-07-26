@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 智能专注力管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .session-info {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+
+        .controls-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-transform: uppercase;
+            min-height: 45px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #FF9800, #F57C00);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 15px;
+        }
+
+        .metrics-overview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 15px;
+            color: #333;
+            text-align: center;
+        }
+
+        .metric-title {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .metric-value {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .metric-progress {
+            width: 100%;
+            height: 20px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .metric-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .attention-fill {
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+        }
+
+        .stress-fill {
+            background: linear-gradient(90deg, #FF9800, #FFB74D);
+        }
+
+        .charts-container {
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 15px;
+            color: #333;
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 220px !important; /* 增加高度让波形更清晰 */
+            max-height: 220px !important;
+        }
+        
+        /* 添加专注评分卡片样式 */
+        .focus-score-card {
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 15px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .focus-score-title {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        
+        .focus-score-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2196F3;
+        }
+        
+        .focus-score-trend {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .sidebar {
+            display: grid;
+            grid-template-rows: auto auto 1fr;
+            gap: 15px;
+        }
+
+        .music-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .music-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .music-info {
+            margin-bottom: 15px;
+        }
+
+        .music-track {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .music-artist {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .music-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .volume-control {
+            margin-bottom: 10px;
+        }
+
+        .volume-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .break-suggestions {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .break-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .break-recommendation {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .break-type {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .break-reason {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .break-activities {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .notifications-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            border-left-color: #4CAF50;
+        }
+
+        .notification.warning {
+            border-left-color: #FF9800;
+        }
+
+        .notification.info {
+            border-left-color: #2196F3;
+        }
+
+        .notification.break_suggestion {
+            border-left-color: #FFD700;
+        }
+
+        .notification.force_break {
+            border-left-color: #f44336;
+        }
+
+        .notification-time {
+            font-size: 0.8em;
+            opacity: 0.7;
+            float: right;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connected {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto;
+            }
+            
+            .notifications-panel {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .metrics-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+        }
+
+        .break-recommendation {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .break-recommendation.high-urgency {
+            border-left-color: #f44336;
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .break-recommendation.medium-urgency {
+            border-left-color: #FF9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+
+        .break-recommendation.low-urgency {
+            border-left-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .break-type {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .break-duration, .break-urgency, .break-confidence {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .break-reason {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .break-activities {
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+
+        .break-activities ul {
+            margin: 5px 0 0 20px;
+            padding: 0;
+        }
+
+        .break-activities li {
+            margin-bottom: 3px;
+        }
+
+        .music-reason {
+            font-size: 0.9em;
+            opacity: 0.8;
+            font-style: italic;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 连接状态指示器 -->
+    <div class="connection-status disconnected" id="connectionStatus">
+        <span id="connectionText">连接中...</span>
+    </div>
+
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🧠 智能专注力管理系统</h1>
+            <p>AI驱动的专注力训练与认知优化平台</p>
+        </div>
+
+        <!-- 会话信息 -->
+        <div class="session-info" id="sessionInfo">
+            <div class="info-item">
+                <div class="info-label">会话状态</div>
+                <div class="info-value" id="sessionStatus">未开始</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">已用时间</div>
+                <div class="info-value" id="elapsedTime">00:00:00</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">目标时间</div>
+                <div class="info-value" id="targetTime">--:-- ~ --:--</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">专注评分</div>
+                <div class="info-value" id="focusScore">--</div>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="controls-panel">
+            <div class="controls-grid">
+                <button class="btn btn-primary" onclick="window.location.href='/setup'">
+                    🚀 新建会话
+                </button>
+                <button class="btn btn-secondary" id="pauseBtn" onclick="pauseSession()" disabled>
+                    ⏸️ 暂停会话
+                </button>
+                <button class="btn btn-secondary" id="resumeBtn" onclick="resumeSession()" disabled style="display:none;">
+                    ▶️ 恢复会话
+                </button>
+                <button class="btn btn-warning" id="takeBreakBtn" onclick="takeBreak()" disabled>
+                    ☕ 休息5分钟
+                </button>
+                <button class="btn btn-danger" id="stopBtn" onclick="stopSession()" disabled>
+                    🛑 结束会话
+                </button>
+            </div>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div class="main-content">
+            <!-- 图表和指标区域 -->
+            <div class="charts-section">
+                <!-- 认知指标概览 -->
+                <div class="metrics-overview">
+                    <div class="metric-card">
+                        <div class="metric-title">🎯 专注度</div>
+                        <div class="metric-value" id="attentionValue">0%</div>
+                        <div class="metric-progress">
+                            <div class="metric-fill attention-fill" id="attentionBar" style="width: 0%"></div>
+                        </div>
+                        <div id="attentionTrend">稳定</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">⚡ 认知压力</div>
+                        <div class="metric-value" id="stressValue">0%</div>
+                        <div class="metric-progress">
+                            <div class="metric-fill stress-fill" id="stressBar" style="width: 0%"></div>
+                        </div>
+                        <div id="stressTrend">稳定</div>
+                    </div>
+                </div>
+
+                <!-- 脑电波形图 -->
+                <div class="charts-container">
+                    <div class="chart-title">🧠 实时脑电波形 (T7/T8电极)</div>
+                    <canvas class="chart-canvas" id="eegChart"></canvas>
+                </div>
+
+                <!-- 认知指标历史趋势图 -->
+                <div class="charts-container">
+                    <div class="chart-title">📈 认知指标历史趋势</div>
+                    <canvas class="chart-canvas" id="metricsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <!-- 音乐推荐面板 -->
+                <div class="music-panel" id="musicPanel">
+                    <div class="music-title">🎵 智能音乐推荐</div>
+                    <div class="music-info" id="musicInfo">
+                        <div class="music-track" id="musicTrack">等待推荐...</div>
+                        <div class="music-artist" id="musicArtist"></div>
+                        <div class="music-reason" id="musicReason"></div>
+                    </div>
+                    <div class="music-controls">
+                        <button class="btn btn-primary" id="playMusicBtn" onclick="startMusic()">
+                            ▶️ 播放
+                        </button>
+                        <button class="btn btn-secondary" id="stopMusicBtn" onclick="stopMusic()">
+                            ⏹️ 停止
+                        </button>
+                    </div>
+                    <div class="volume-control">
+                        <label>推荐音量: <span id="volumeLevel">50%</span></label>
+                        <input type="range" class="volume-slider" id="volumeSlider" 
+                               min="0" max="100" value="50" onchange="updateVolume()">
+                    </div>
+                </div>
+
+                <!-- 休息建议面板 -->
+                <div class="break-suggestions" id="breakPanel">
+                    <div class="break-title">💡 智能休息建议</div>
+                    <div id="breakContent">
+                        <p style="text-align: center; opacity: 0.8;">暂无休息建议</p>
+                    </div>
+                </div>
+
+                <!-- 通知面板 -->
+                <div class="notifications-panel">
+                    <div class="break-title">📢 系统通知</div>
+                    <div id="notificationsList">
+                        <!-- 通知将在这里动态添加 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // 全局变量
+        const socket = io();
+        let eegChart;
+        let sessionStartTime = null;
+        let currentSession = null;
+        let notifications = []; // 添加通知数组
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+            loadStatus();
+        });
+        
+        // 初始化图表
+        function initChart() {
+            const ctx = document.getElementById('eegChart').getContext('2d');
+            
+            eegChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'T7 (左脑)',
+                            data: [],
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 1.5,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'T8 (右脑)',
+                            data: [],
+                            borderColor: '#FF5722',
+                            backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                            borderWidth: 1.5,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '电压 (μV)'
+                            }
+                        }
+                    },
+                    animation: false
+                }
+            });
+            
+            // 初始化认知指标图表
+            initMetricsChart();
+        }
+        
+        // 初始化认知指标图表
+        function initMetricsChart() {
+            const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+            
+            window.metricsChart = new Chart(metricsCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: '🎯 专注度',
+                            data: [],
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 4
+                        },
+                        {
+                            label: '⚡ 认知压力',
+                            data: [],
+                            borderColor: '#FF9800',
+                            backgroundColor: 'rgba(255, 152, 0, 0.2)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = (context.parsed.y * 100).toFixed(1);
+                                    return context.dataset.label + ': ' + value + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '时间 (秒)'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '水平 (0-1)'
+                            },
+                            min: 0,
+                            max: 1,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return (value * 100).toFixed(0) + '%';
+                                }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    animation: {
+                        duration: 300
+                    }
+                }
+            });
+        }
+        
+        // 加载状态
+        function loadStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    updateUI(data);
+                })
+                .catch(error => {
+                    console.error('加载状态失败:', error);
+                });
+        }
+        
+        // 更新UI - 匹配后端数据格式
+        function updateUI(status) {
+            // 更新会话状态
+            if (status.running) {
+                document.getElementById('sessionStatus').textContent = '进行中';
+                document.getElementById('pauseBtn').disabled = false;
+                document.getElementById('takeBreakBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = false;
+                
+                // 如果没有会话开始时间且会话正在运行，设置开始时间
+                if (!sessionStartTime) {
+                    sessionStartTime = new Date();
+                }
+            } else {
+                document.getElementById('sessionStatus').textContent = '未开始';
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('takeBreakBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = true;
+                sessionStartTime = null;
+            }
+            
+            // 更新会话配置信息
+            if (status.session_config) {
+                currentSession = status.session_config;
+                document.getElementById('targetTime').textContent = 
+                    `${currentSession.min_duration}:00 ~ ${currentSession.max_duration}:00`;
+            }
+            
+            // 优先使用后端提供的时长数据
+            if (status.status && status.status.duration !== undefined) {
+                updateElapsedTime(status.status.duration);
+            }
+            
+            // 更新状态数据
+            if (status.status) {
+                // 更新专注度
+                const attentionPercent = Math.round((status.status.attention || 0) * 100);
+                document.getElementById('attentionValue').textContent = attentionPercent + '%';
+                document.getElementById('attentionBar').style.width = attentionPercent + '%';
+                
+                // 更新压力
+                const stressPercent = Math.round((status.status.stress || 0) * 100);
+                document.getElementById('stressValue').textContent = stressPercent + '%';
+                document.getElementById('stressBar').style.width = stressPercent + '%';
+                
+                // 更新专注评分（基于注意力和压力计算综合评分）
+                const focusScore = Math.round(((status.status.attention || 0) * 0.7 + (1 - (status.status.stress || 0)) * 0.3) * 100);
+                document.getElementById('focusScore').textContent = focusScore + '%';
+            }
+        }
+        
+        // 统一的时间更新函数
+        function updateElapsedTime(durationInSeconds) {
+            const duration = Math.floor(durationInSeconds);
+            const hours = Math.floor(duration / 3600);
+            const minutes = Math.floor((duration % 3600) / 60);
+            const seconds = duration % 60;
+            
+            document.getElementById('elapsedTime').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 更新图表 - 匹配后端数据格式
+        function updateChart(eegData) {
+            if (!eegData || eegData.length === 0) return;
+            
+            // 显示最近30个数据点
+            const maxPoints = 30;
+            const recentData = eegData.slice(-maxPoints);
+            
+            const t7Data = recentData.map(d => d.T7);
+            const t8Data = recentData.map(d => d.T8);
+            const labels = recentData.map((d, i) => i);
+            
+            eegChart.data.labels = labels;
+            eegChart.data.datasets[0].data = t7Data;
+            eegChart.data.datasets[1].data = t8Data;
+            eegChart.update('none');
+        }
+        
+        // 更新指标 - 匹配后端数据格式并添加趋势分析
+        function updateMetrics(metricsData) {
+            if (!metricsData || metricsData.length === 0) return;
+            
+            const latest = metricsData[metricsData.length - 1];
+            
+            // 更新专注度
+            const attentionPercent = Math.round((latest.attention || 0) * 100);
+            document.getElementById('attentionValue').textContent = attentionPercent + '%';
+            document.getElementById('attentionBar').style.width = attentionPercent + '%';
+            
+            // 更新压力
+            const stressPercent = Math.round((latest.stress || 0) * 100);
+            document.getElementById('stressValue').textContent = stressPercent + '%';
+            document.getElementById('stressBar').style.width = stressPercent + '%';
+            
+            // 更新专注评分
+            const focusScore = Math.round(((latest.attention || 0) * 0.7 + (1 - (latest.stress || 0)) * 0.3) * 100);
+            document.getElementById('focusScore').textContent = focusScore + '%';
+            
+            // 计算并显示趋势
+            updateTrends(metricsData);
+            
+            // 更新认知指标图表
+            updateMetricsChart(metricsData);
+        }
+        
+        // 新增：更新趋势显示
+        function updateTrends(metricsData) {
+            if (metricsData.length < 10) return; // 需要足够的数据点
+            
+            const recent = metricsData.slice(-10);
+            const older = metricsData.slice(-20, -10);
+            
+            if (older.length === 0) return;
+            
+            // 计算注意力趋势
+            const recentAttention = recent.reduce((sum, d) => sum + (d.attention || 0), 0) / recent.length;
+            const olderAttention = older.reduce((sum, d) => sum + (d.attention || 0), 0) / older.length;
+            const attentionTrend = recentAttention - olderAttention;
+            
+            // 计算压力趋势
+            const recentStress = recent.reduce((sum, d) => sum + (d.stress || 0), 0) / recent.length;
+            const olderStress = older.reduce((sum, d) => sum + (d.stress || 0), 0) / older.length;
+            const stressTrend = recentStress - olderStress;
+            
+            // 更新趋势显示
+            document.getElementById('attentionTrend').textContent = 
+                attentionTrend > 0.05 ? '↗️ 上升' : 
+                attentionTrend < -0.05 ? '↘️ 下降' : '➡️ 稳定';
+                
+            document.getElementById('stressTrend').textContent = 
+                stressTrend > 0.05 ? '↗️ 上升' : 
+                stressTrend < -0.05 ? '↘️ 下降' : '➡️ 稳定';
+        }
+        
+        // 新增：更新认知指标图表
+        function updateMetricsChart(metricsData) {
+            if (!window.metricsChart || metricsData.length === 0) return;
+            
+            // 显示最近60个数据点（约1分钟）
+            const maxPoints = 60;
+            const recentData = metricsData.slice(-maxPoints);
+            
+            const labels = recentData.map((d, i) => i);
+            const attentionData = recentData.map(d => d.attention || 0);
+            const stressData = recentData.map(d => d.stress || 0);
+            
+            window.metricsChart.data.labels = labels;
+            window.metricsChart.data.datasets[0].data = attentionData;
+            window.metricsChart.data.datasets[1].data = stressData;
+            window.metricsChart.update('none');
+        }
+        
+        // 更新通知
+        function updateNotifications(newNotifications) {
+            if (!newNotifications) return;
+            
+            // 合并新通知
+            notifications = [...notifications, ...newNotifications];
+            
+            const notificationsList = document.getElementById('notificationsList');
+            
+            // 显示最新10条通知
+            const recentNotifications = notifications.slice(-10);
+            notificationsList.innerHTML = '';
+            
+            recentNotifications.forEach(notification => {
+                const notificationEl = document.createElement('div');
+                notificationEl.className = `notification ${notification.type || 'info'}`;
+                
+                const timeText = new Date(notification.timestamp * 1000).toLocaleTimeString();
+                
+                notificationEl.innerHTML = `
+                    <div class="notification-time">${timeText}</div>
+                    <div>${notification.message}</div>
+                `;
+                
+                notificationsList.appendChild(notificationEl);
+            });
+            
+            // 滚动到底部
+            notificationsList.scrollTop = notificationsList.scrollHeight;
+        }
+        
+        // 会话控制函数 - 添加缺失的API调用
+        function pauseSession() {
+            fetch('/api/pause_session', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('pauseBtn').style.display = 'none';
+                        document.getElementById('resumeBtn').style.display = 'block';
+                        showMessage('会话已暂停', 'info');
+                    } else {
+                        showMessage('暂停失败: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage('暂停失败: ' + error.message, 'error');
+                });
+        }
+        
+        function resumeSession() {
+            fetch('/api/resume_session', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('pauseBtn').style.display = 'block';
+                        document.getElementById('resumeBtn').style.display = 'none';
+                        showMessage('会话已恢复', 'success');
+                    } else {
+                        showMessage('恢复失败: ' + data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage('恢复失败: ' + error.message, 'error');
+                });
+        }
+        
+        function stopSession() {
+            if (confirm('确定要结束当前会话吗？')) {
+                fetch('/api/stop_session', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showMessage('会话已停止', 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showMessage('停止失败: ' + data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showMessage('停止失败: ' + error.message, 'error');
+                    });
+            }
+        }
+        
+        function takeBreak() {
+            const duration = prompt('请输入休息时间（分钟）:', '5');
+            if (duration && !isNaN(duration)) {
+                fetch('/api/take_break', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ duration: parseInt(duration) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showMessage(data.message, data.success ? 'success' : 'error');
+                })
+                .catch(error => {
+                    showMessage('休息请求失败: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // 音乐控制函数 - 添加缺失的API调用
+        function startMusic() {
+            fetch('/api/start_music', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    showMessage(data.message, data.success ? 'success' : 'error');
+                })
+                .catch(error => {
+                    showMessage('音乐播放失败: ' + error.message, 'error');
+                });
+        }
+        
+        function stopMusic() {
+            fetch('/api/stop_music', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    showMessage(data.message, data.success ? 'success' : 'error');
+                })
+                .catch(error => {
+                    showMessage('音乐停止失败: ' + error.message, 'error');
+                });
+        }
+        
+        function updateVolume() {
+            const volume = document.getElementById('volumeSlider').value;
+            document.getElementById('volumeLevel').textContent = volume + '%';
+        }
+        
+        // 工具函数
+        function showMessage(message, type) {
+            // 添加消息到通知列表
+            const notification = {
+                message: message,
+                type: type,
+                timestamp: Date.now() / 1000
+            };
+            updateNotifications([notification]);
+        }
+        
+        function updateTimer() {
+            if (sessionStartTime) {
+                const now = new Date();
+                const elapsed = Math.floor((now - sessionStartTime) / 1000);
+                
+                const hours = Math.floor(elapsed / 3600);
+                const minutes = Math.floor((elapsed % 3600) / 60);
+                const seconds = elapsed % 60;
+                
+                document.getElementById('elapsedTime').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        // Socket.IO 事件处理 - 使用后端实际的事件名称
+        socket.on('connect', function() {
+            document.getElementById('connectionStatus').className = 'connection-status connected';
+            document.getElementById('connectionText').textContent = '✅ 已连接';
+        });
+        
+        socket.on('disconnect', function() {
+            document.getElementById('connectionStatus').className = 'connection-status disconnected';
+            document.getElementById('connectionText').textContent = '❌ 连接断开';
+        });
+        
+        // 修改事件名称以匹配后端
+        socket.on('data_update', function(data) {
+            updateChart(data.eeg_data);
+            updateMetrics(data.metrics_data);
+            
+            // 处理休息建议
+            if (data.break_suggestion) {
+                updateBreakSuggestion(data.break_suggestion);
+            }
+            
+            // 处理音乐推荐
+            if (data.music_status) {
+                updateMusicRecommendation(data.music_status);
+            }
+            
+            // 处理状态更新
+            if (data.status) {
+                // 更新会话时长
+                if (data.status.duration) {
+                    updateElapsedTime(data.status.duration);
+                }
+            }
+        });
+        
+        // 新增：更新休息建议显示
+        function updateBreakSuggestion(suggestion) {
+            const breakContent = document.getElementById('breakContent');
+            
+            if (suggestion) {
+                const urgencyClass = suggestion.urgency >= 4 ? 'high-urgency' : 
+                                   suggestion.urgency >= 3 ? 'medium-urgency' : 'low-urgency';
+                
+                breakContent.innerHTML = `
+                    <div class="break-recommendation ${urgencyClass}">
+                        <div class="break-type">💡 ${getBreakTypeText(suggestion.type)}</div>
+                        <div class="break-duration">⏱️ 建议时长: ${suggestion.duration} 分钟</div>
+                        <div class="break-reason">📋 原因: ${suggestion.reason}</div>
+                        <div class="break-urgency">⚠️ 紧急程度: ${suggestion.urgency}/5</div>
+                        <div class="break-activities">
+                            <strong>建议活动:</strong>
+                            <ul>
+                                ${suggestion.activities.map(activity => `<li>${activity}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="break-confidence">可信度: ${(suggestion.confidence * 100).toFixed(0)}%</div>
+                        <button class="btn btn-warning" onclick="acceptBreakSuggestion(${suggestion.duration})">
+                            接受建议
+                        </button>
+                    </div>
+                `;
+                
+                // 添加通知
+                showMessage(`💡 休息建议: ${suggestion.reason}`, 'break_suggestion');
+            }
+        }
+        
+        // 新增：获取休息类型文本
+        function getBreakTypeText(type) {
+            const typeMap = {
+                'micro_break': '微休息',
+                'short_break': '短休息', 
+                'long_break': '长休息',
+                'power_nap': '小憩'
+            };
+            return typeMap[type] || type;
+        }
+        
+        // 新增：接受休息建议
+        function acceptBreakSuggestion(duration) {
+            if (confirm(`确定要休息 ${duration} 分钟吗？`)) {
+                fetch('/api/take_break', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ duration: duration })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showMessage(data.message, data.success ? 'success' : 'error');
+                })
+                .catch(error => {
+                    showMessage('休息请求失败: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // 新增：更新音乐推荐显示
+        function updateMusicRecommendation(musicStatus) {
+            if (musicStatus && musicStatus.recommendation) {
+                const recommendation = musicStatus.recommendation;
+                
+                document.getElementById('musicTrack').textContent = 
+                    recommendation.tracks && recommendation.tracks.length > 0 ? 
+                    recommendation.tracks[0].title : '暂无推荐';
+                    
+                document.getElementById('musicArtist').textContent = 
+                    recommendation.tracks && recommendation.tracks.length > 0 ? 
+                    recommendation.tracks[0].artist : '';
+                    
+                document.getElementById('musicReason').textContent = 
+                    recommendation.reason || '';
+                
+                // 更新推荐音量
+                if (recommendation.adaptive_volume !== undefined) {
+                    const volumePercent = Math.round(recommendation.adaptive_volume * 100);
+                    document.getElementById('volumeSlider').value = volumePercent;
+                    document.getElementById('volumeLevel').textContent = volumePercent + '%';
+                }
+            }
+        }
+        
+        // 新增：接受休息建议
+        function acceptBreakSuggestion(duration) {
+            if (confirm(`确定要休息 ${duration} 分钟吗？`)) {
+                fetch('/api/take_break', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ duration: duration })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showMessage(data.message, data.success ? 'success' : 'error');
+                })
+                .catch(error => {
+                    showMessage('休息请求失败: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // 定时器
+        setInterval(updateTimer, 1000);
+        setInterval(loadStatus, 30000); // 每30秒刷新状态
+    </script>
+</body>
+</html>

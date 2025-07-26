@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 EEG实时监控仪表板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+
+        .btn-stop {
+            background: linear-gradient(45deg, #f44336, #da190b);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .status-panel {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .status-item {
+            padding: 10px;
+        }
+
+        .status-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        /* 优化后的图表容器 - 更紧凑 */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .chart-panel {
+            background: rgba(255,255,255,0.95);
+            padding: 12px;
+            border-radius: 12px;
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 1.0em;
+            font-weight: bold;
+        }
+
+        /* 关键优化：降低图表高度 */
+        .chart-canvas {
+            width: 100%;
+            height: 180px !important; /* 从250px降低到180px */
+        }
+
+        .metrics-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-title {
+            font-size: 1.0em;
+            margin-bottom: 12px;
+            opacity: 0.9;
+        }
+
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .metric-bar {
+            width: 100%;
+            height: 18px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        .metric-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 9px;
+        }
+
+        .attention-fill {
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+        }
+
+        .stress-fill {
+            background: linear-gradient(90deg, #FF9800, #FFB74D);
+        }
+
+        .connection-indicator {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9em;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .connected {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .chart-canvas {
+                height: 150px !important; /* 移动端更小 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 连接状态指示器 -->
+    <div class="connection-indicator disconnected" id="connectionStatus">
+        <span id="connectionText">连接中...</span>
+    </div>
+
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🧠 EEG实时监控仪表板</h1>
+            <p>EMOTIV脑电波数据实时可视化</p>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="controls">
+            <button class="btn btn-start" onclick="startMonitoring()">
+                🚀 开始监控
+            </button>
+            <button class="btn btn-stop" onclick="stopMonitoring()">
+                🛑 停止监控
+            </button>
+        </div>
+
+        <!-- 状态面板 -->
+        <div class="status-panel">
+            <h3 style="text-align: center; margin-bottom: 15px; font-size: 1.1em;">📊 系统状态</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-label">会话时长</div>
+                    <div class="status-value" id="sessionDuration">00:00:00</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">EEG数据包</div>
+                    <div class="status-value" id="eegCount">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">指标数据包</div>
+                    <div class="status-value" id="metricsCount">0</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">数据速率</div>
+                    <div class="status-value" id="dataRate">0 Hz</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 优化后的图表容器 -->
+        <div class="charts-container">
+            <div class="chart-panel">
+                <div class="chart-title">🧠 T7电极波形 (左脑)</div>
+                <canvas class="chart-canvas" id="t7Chart"></canvas>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-title">🧠 T8电极波形 (右脑)</div>
+                <canvas class="chart-canvas" id="t8Chart"></canvas>
+            </div>
+        </div>
+
+        <!-- 认知指标 -->
+        <div class="metrics-container">
+            <div class="metric-card">
+                <div class="metric-title">🎯 专注度监控</div>
+                <div class="metric-value" id="attentionValue">0%</div>
+                <div class="metric-bar">
+                    <div class="metric-fill attention-fill" id="attentionBar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title">⚡ 认知压力</div>
+                <div class="metric-value" id="stressValue">0%</div>
+                <div class="metric-bar">
+                    <div class="metric-fill stress-fill" id="stressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // 初始化Socket.IO连接
+        const socket = io();
+        
+        // 图表变量
+        let t7Chart, t8Chart;
+        let sessionStartTime = null;
+        let isMonitoring = false;
+        
+        // 优化后的图表初始化 - 显示更短的时间窗口
+        function initCharts() {
+            const chartConfig = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderWidth: 1.5, // 稍微细一点的线条
+                        fill: true,
+                        tension: 0.3, // 更平滑的曲线
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { 
+                            display: false 
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'μV',
+                                font: { size: 11 }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                            ticks: {
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    animation: false,
+                    // 优化性能
+                    elements: {
+                        point: {
+                            radius: 0
+                        }
+                    }
+                }
+            };
+            
+            // T7图表 (绿色)
+            const t7Config = JSON.parse(JSON.stringify(chartConfig));
+            t7Config.data.datasets[0].borderColor = '#4CAF50';
+            t7Config.data.datasets[0].backgroundColor = 'rgba(76, 175, 80, 0.15)';
+            t7Chart = new Chart(document.getElementById('t7Chart'), t7Config);
+            
+            // T8图表 (橙色)
+            const t8Config = JSON.parse(JSON.stringify(chartConfig));
+            t8Config.data.datasets[0].borderColor = '#FF5722';
+            t8Config.data.datasets[0].backgroundColor = 'rgba(255, 87, 34, 0.15)';
+            t8Chart = new Chart(document.getElementById('t8Chart'), t8Config);
+        }
+        
+        // 优化后的图表更新 - 显示更短的时间窗口
+        function updateCharts(eegData) {
+            if (eegData.length === 0) return;
+            
+            // 关键优化：减少显示的数据点数量，让波形更紧凑
+            const maxPoints = 30; // 从100减少到30个点，显示更短的时间窗口
+            
+            // 提取最新的数据
+            const recentData = eegData.slice(-maxPoints);
+            const t7Data = recentData.map(d => d.T7);
+            const t8Data = recentData.map(d => d.T8);
+            const labels = recentData.map((d, i) => i);
+            
+            // 更新T7图表
+            t7Chart.data.labels = labels;
+            t7Chart.data.datasets[0].data = t7Data;
+            t7Chart.update('none');
+            
+            // 更新T8图表
+            t8Chart.data.labels = labels;
+            t8Chart.data.datasets[0].data = t8Data;
+            t8Chart.update('none');
+        }
+        
+        // 更新认知指标
+        function updateMetrics(metricsData) {
+            if (metricsData.length === 0) return;
+            
+            const latest = metricsData[metricsData.length - 1];
+            
+            // 更新专注度
+            const attentionPercent = (latest.attention * 100).toFixed(1);
+            document.getElementById('attentionValue').textContent = attentionPercent + '%';
+            document.getElementById('attentionBar').style.width = attentionPercent + '%';
+            
+            // 更新压力
+            const stressPercent = (latest.stress * 100).toFixed(1);
+            document.getElementById('stressValue').textContent = stressPercent + '%';
+            document.getElementById('stressBar').style.width = stressPercent + '%';
+        }
+        
+        // 更新状态显示
+        function updateStatus(status) {
+            // 更新计数器
+            document.getElementById('eegCount').textContent = status.eeg_count || 0;
+            document.getElementById('metricsCount').textContent = status.metrics_count || 0;
+            
+            // 计算和显示数据速率
+            const duration = status.duration || 1;
+            const eegRate = ((status.eeg_count || 0) / duration).toFixed(1);
+            document.getElementById('dataRate').textContent = eegRate + ' Hz';
+            
+            // 更新会话时长
+            if (isMonitoring && sessionStartTime) {
+                const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                const hours = Math.floor(elapsed / 3600);
+                const minutes = Math.floor((elapsed % 3600) / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('sessionDuration').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        // Socket事件处理
+        socket.on('connect', function() {
+            document.getElementById('connectionStatus').className = 'connection-indicator connected';
+            document.getElementById('connectionText').textContent = '✅ 已连接';
+            console.log('WebSocket连接成功');
+        });
+        
+        socket.on('disconnect', function() {
+            document.getElementById('connectionStatus').className = 'connection-indicator disconnected';
+            document.getElementById('connectionText').textContent = '❌ 连接断开';
+            console.log('WebSocket连接断开');
+        });
+        
+        socket.on('data_update', function(data) {
+            updateCharts(data.eeg_data);
+            updateMetrics(data.metrics_data);
+            updateStatus(data.status);
+        });
+        
+        socket.on('status_update', function(data) {
+            isMonitoring = data.running;
+            if (data.running && !sessionStartTime) {
+                sessionStartTime = Date.now();
+            } else if (!data.running) {
+                sessionStartTime = null;
+            }
+        });
+        
+        // 控制函数 - 添加状态检查
+        function startMonitoring() {
+            // 先检查当前状态，避免重复启动
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(statusData => {
+                    if (statusData.running) {
+                        alert('⚠️ 监控已经在运行中！');
+                        return;
+                    }
+                    
+                    // 启动监控
+                    fetch('/api/start')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                sessionStartTime = Date.now();
+                                isMonitoring = true;
+                                alert('🚀 监控已启动！');
+                                console.log('监控启动成功');
+                            } else {
+                                alert('❌ 启动失败：' + data.message);
+                                console.error('监控启动失败:', data.message);
+                            }
+                        })
+                        .catch(error => {
+                            alert('❌ 启动错误：' + error);
+                            console.error('启动错误:', error);
+                        });
+                })
+                .catch(error => {
+                    console.error('获取状态失败:', error);
+                });
+        }
+        
+        function stopMonitoring() {
+            fetch('/api/stop')
+                .then(response => response.json())
+                .then(data => {
+                    sessionStartTime = null;
+                    isMonitoring = false;
+                    alert('🛑 监控已停止！');
+                    console.log('监控停止成功');
+                })
+                .catch(error => {
+                    alert('❌ 停止错误：' + error);
+                    console.error('停止错误:', error);
+                });
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，初始化图表...');
+            initCharts();
+            
+            // 定时更新会话时长显示
+            setInterval(function() {
+                if (isMonitoring && sessionStartTime) {
+                    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                    const hours = Math.floor(elapsed / 3600);
+                    const minutes = Math.floor((elapsed % 3600) / 60);
+                    const seconds = elapsed % 60;
+                    document.getElementById('sessionDuration').textContent = 
+                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

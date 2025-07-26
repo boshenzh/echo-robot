@@ -1,0 +1,11 @@
+{
+    "session_id": "20250726_120544",
+    "start_time": "2025-07-26 12:05:44.173647",
+    "end_time": "2025-07-26 12:06:13.619249",
+    "duration_seconds": 29.445606,
+    "files_created": {
+        "eeg_data": "eeg_session_eeg_20250726_120544.csv",
+        "metrics_data": "eeg_session_metrics_20250726_120544.csv",
+        "summary": "eeg_session_summary_20250726_120544.json"
+    }
+}

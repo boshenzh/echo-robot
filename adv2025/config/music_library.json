@@ -1,0 +1,194 @@
+{
+    "focus_ambient": [
+      {
+        "title": "森林环境音",
+        "artist": "自然之声",
+        "url": "static/audio/focus/forest_ambient.mp3",
+        "duration_seconds": 1800,
+        "tempo": 60,
+        "valence": 0.5,
+        "energy": 0.3,
+        "tags": ["nature", "forest", "birds", "peaceful"]
+      },
+      {
+        "title": "白噪音专注",
+        "artist": "专注音频",
+        "url": "static/audio/focus/white_noise.mp3",
+        "duration_seconds": 3600,
+        "tempo": 0,
+        "valence": 0.5,
+        "energy": 0.2,
+        "tags": ["whitenoise", "concentration", "steady"]
+      },
+      {
+        "title": "咖啡厅环境音",
+        "artist": "环境音效",
+        "url": "static/audio/focus/cafe_ambience.mp3",
+        "duration_seconds": 2400,
+        "tempo": 55,
+        "valence": 0.6,
+        "energy": 0.4,
+        "tags": ["cafe", "chatter", "urban", "productive"]
+      }
+    ],
+    "relaxation": [
+      {
+        "title": "平静钢琴",
+        "artist": "放松音乐",
+        "url": "static/audio/relaxation/calm_piano.mp3",
+        "duration_seconds": 1200,
+        "tempo": 50,
+        "valence": 0.8,
+        "energy": 0.3,
+        "tags": ["piano", "calm", "gentle", "soothing"]
+      },
+      {
+        "title": "海浪声",
+        "artist": "自然之声",
+        "url": "static/audio/relaxation/ocean_waves.mp3",
+        "duration_seconds": 2400,
+        "tempo": 40,
+        "valence": 0.7,
+        "energy": 0.2,
+        "tags": ["ocean", "waves", "relaxing", "rhythmic"]
+      },
+      {
+        "title": "温柔吉他",
+        "artist": "轻音乐",
+        "url": "static/audio/relaxation/gentle_guitar.mp3",
+        "duration_seconds": 1500,
+        "tempo": 65,
+        "valence": 0.8,
+        "energy": 0.4,
+        "tags": ["guitar", "acoustic", "warm", "melodic"]
+      }
+    ],
+    "nature_sounds": [
+      {
+        "title": "雨声",
+        "artist": "自然音效",
+        "url": "static/audio/nature/rain_sound.mp3",
+        "duration_seconds": 1800,
+        "tempo": 45,
+        "valence": 0.6,
+        "energy": 0.3,
+        "tags": ["rain", "peaceful", "steady", "calming"]
+      },
+      {
+        "title": "鸟鸣清晨",
+        "artist": "自然之声",
+        "url": "static/audio/nature/morning_birds.mp3",
+        "duration_seconds": 1500,
+        "tempo": 55,
+        "valence": 0.7,
+        "energy": 0.4,
+        "tags": ["birds", "morning", "cheerful", "natural"]
+      },
+      {
+        "title": "溪流声",
+        "artist": "自然音效",
+        "url": "static/audio/nature/stream_flow.mp3",
+        "duration_seconds": 2100,
+        "tempo": 50,
+        "valence": 0.6,
+        "energy": 0.3,
+        "tags": ["water", "stream", "flowing", "peaceful"]
+      }
+    ],
+    "meditation": [
+      {
+        "title": "颂钵冥想",
+        "artist": "冥想音乐",
+        "url": "static/audio/meditation/singing_bowls.mp3",
+        "duration_seconds": 2100,
+        "tempo": 30,
+        "valence": 0.8,
+        "energy": 0.2,
+        "tags": ["bowls", "meditation", "spiritual", "deep"]
+      },
+      {
+        "title": "呼吸引导",
+        "artist": "正念音频",
+        "url": "static/audio/meditation/breathing_guide.mp3",
+        "duration_seconds": 1200,
+        "tempo": 25,
+        "valence": 0.9,
+        "energy": 0.1,
+        "tags": ["breathing", "guided", "mindfulness", "centering"]
+      },
+      {
+        "title": "Om咒语",
+        "artist": "灵性音乐",
+        "url": "static/audio/meditation/om_chanting.mp3",
+        "duration_seconds": 1800,
+        "tempo": 20,
+        "valence": 0.9,
+        "energy": 0.1,
+        "tags": ["om", "chanting", "spiritual", "transcendent"]
+      }
+    ],
+    "classical": [
+      {
+        "title": "巴赫 - 空气",
+        "artist": "古典音乐集",
+        "url": "static/audio/classical/bach_air.mp3",
+        "duration_seconds": 300,
+        "tempo": 70,
+        "valence": 0.6,
+        "energy": 0.4,
+        "tags": ["bach", "baroque", "elegant", "structured"]
+      },
+      {
+        "title": "德彪西 - 月光",
+        "artist": "古典音乐集",
+        "url": "static/audio/classical/debussy_moonlight.mp3",
+        "duration_seconds": 280,
+        "tempo": 60,
+        "valence": 0.7,
+        "energy": 0.3,
+        "tags": ["debussy", "impressionist", "dreamy", "flowing"]
+      },
+      {
+        "title": "埃里克·萨蒂 - 金诺佩第",
+        "artist": "古典音乐集",
+        "url": "static/audio/classical/satie_gymnopedie.mp3",
+        "duration_seconds": 210,
+        "tempo": 50,
+        "valence": 0.6,
+        "energy": 0.2,
+        "tags": ["satie", "minimalist", "contemplative", "gentle"]
+      }
+    ],
+    "binaural_beats": [
+      {
+        "title": "Alpha波 10Hz",
+        "artist": "脑波音频",
+        "url": "static/audio/binaural/alpha_10hz.mp3",
+        "duration_seconds": 1800,
+        "tempo": 10,
+        "valence": 0.5,
+        "energy": 0.3,
+        "tags": ["alpha", "10hz", "focus", "alertness"]
+      },
+      {
+        "title": "Theta波 6Hz",
+        "artist": "脑波音频",
+        "url": "static/audio/binaural/theta_6hz.mp3",
+        "duration_seconds": 2400,
+        "tempo": 6,
+        "valence": 0.6,
+        "energy": 0.2,
+        "tags": ["theta", "6hz", "creativity", "deep"]
+      },
+      {
+        "title": "Beta波 15Hz",
+        "artist": "脑波音频",
+        "url": "static/audio/binaural/beta_15hz.mp3",
+        "duration_seconds": 1500,
+        "tempo": 15,
+        "valence": 0.5,
+        "energy": 0.5,
+        "tags": ["beta", "15hz", "concentration", "active"]
+      }
+    ]
+  }

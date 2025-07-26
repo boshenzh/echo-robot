@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, List
 from collections import deque
 import random
+from echo_robot.lerobot_yolo import *
 
 @dataclass
 class SessionData:
@@ -98,21 +99,22 @@ class IntegratedSystem:
         self.state = SystemState(simulation_mode=simulation_mode)
         self.current_session = None
         self.session_history = []
-        self.ser = None
+        self.tuya_ser = None
         self.monitoring_thread = None
         self.robot_process = None
+        self.state.last_robot_trigger = time.time()
         
         # EEG模拟器
-        self.eeg_simulator = EEGSimulator() if simulation_mode else None
+        self.eeg_simulator = EEGSimulator()
         
         # 配置参数
         self.config = {
             'serial_port': '/dev/ttyACM0',
             'baud_rate': 115200,
             'monitor_interval': 1.0,  # 监控间隔（秒）
-            'attention_threshold': 0.5,  # 注意力阈值
-            'stress_threshold': 0.7,  # 压力阈值
-            'robot_cooldown': 300,  # 机械臂触发冷却时间（5分钟）
+            'attention_threshold': 0.81,  # 注意力阈值
+            'stress_threshold': 0.2,  # 压力阈值
+            'robot_cooldown': 10,  # 机械臂触发冷却时间（5分钟）
             'data_dir': 'session_data'  # 数据保存目录
         }
         
@@ -136,7 +138,7 @@ class IntegratedSystem:
                 return True
                 
             print(f"📡 连接串口 {self.config['serial_port']}...")
-            self.ser = serial.Serial(
+            self.tuya_ser = serial.Serial(
                 self.config['serial_port'], 
                 self.config['baud_rate'], 
                 timeout=0.1
@@ -178,35 +180,115 @@ class IntegratedSystem:
     
     def _get_trigger(self) -> Optional[str]:
         """获取trigger信号"""
-        if self.state.simulation_mode:
-            # 模拟模式 - 从控制台读取
-            import select
-            import sys
-            if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-                line = sys.stdin.readline().strip()
-                return line if line else None
-        else:
+        # if self.state.simulation_mode:
+        #     # 模拟模式 - 从控制台读取
+        #     import select
+        #     import sys
+        #     if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+        #         line = sys.stdin.readline().strip()
+        #         return line if line else None
+        # else:
             # 实机模式 - 从串口读取
-            if self.ser and self.ser.in_waiting > 0:
-                try:
-                    data = self.ser.readline().decode('utf-8').strip()
-                    return data
-                except:
-                    pass
+        if self.tuya_ser and self.tuya_ser.in_waiting > 0:
+            try:
+                data = self.tuya_ser.readline().decode('utf-8').strip()
+                return data
+            except:
+                pass
         return None
+
+    def is_integer(self, s):
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
+        
+    def start_robot(self):
+        print("="*50)
+        
+        # 导入必要的模块
+        from lerobot.robots.so100_follower import SO100Follower, SO100FollowerConfig
+        from lerobot.teleoperators.keyboard import KeyboardTeleop, KeyboardTeleopConfig
+        
+        # # 获取端口
+        port = "/dev/ttyACM0"
+        
+        # 如果直接按回车，使用默认端口
+        if not port:
+            port = "/dev/ttyACM0"
+            print(f"使用默认端口: {port}")
+        else:
+            print(f"连接到端口: {port}")
+        
+        # 配置机器人
+        robot_config = SO100FollowerConfig(port=port)
+        self.robot = SO100Follower(robot_config)
+        
+        # 配置键盘
+        keyboard_config = KeyboardTeleopConfig()
+        self.keyboard = KeyboardTeleop(keyboard_config)
+        
+        # 初始化串口用于trigger
+        try:
+            self.robot_ser = serial.Serial(args.robot_ser, 115200, timeout=0.1)
+            print("串口连接成功，等待trigger信号...")
+        except Exception as e:
+            print(f"串口连接失败: {e}")
+            self.robot_ser = None
+        
+        # 连接设备
+        self.robot.connect()
+        self.keyboard.connect()
+        
+        print("设备连接成功！")
+        
+        # 询问是否重新校准
+        while True:
+            # calibrate_choice = input("是否重新校准机器人? (y/n): ").strip().lower()
+            # if calibrate_choice in ['y', 'yes', '是']:
+            #     print("开始重新校准...")
+            #     robot.calibrate()
+            #     print("校准完成！")
+            #     break
+            # elif calibrate_choice in ['n', 'no', '否']:
+            print("使用之前的校准文件")
+            break
+            # else:
+            #     print("请输入 y 或 n")
+        
+        # 读取起始关节角度
+        print("读取起始关节角度...")
+        start_obs = self.robot.get_observation()
+        self.start_positions = {}
+        for key, value in start_obs.items():
+            if key.endswith('.pos'):
+                motor_name = key.removesuffix('.pos')
+                self.start_positions[motor_name] = int(value)  # 不应用校准系数
+        
+        print("起始关节角度:")
+        for joint_name, position in self.start_positions.items():
+            print(f"  {joint_name}: {position}°")
+        
+        # 移动到零位置
+        move_to_zero_position(self.robot, duration=3.0)
     
     def _process_trigger(self, trigger: str):
         """处理trigger信号"""
         print(f"\n📨 收到信号: '{trigger}'")
         
-        if trigger.startswith('start:'):
-            # 开始会话
-            try:
-                duration = int(trigger.split(':')[1])
-                self.start_session(duration)
-            except:
-                print("❌ 无效的开始命令，格式: start:<分钟数>")
+        # if trigger.startswith('start'):
+        #     # 开始会话
+        #     try:
+        #         # self._process_trigger(trigger)
+        #         duration = int(trigger.split(':')[1])
                 
+        #     except:
+        #         print("❌ 无效的开始命令，格式: start:<分钟数>")
+        if self.is_integer(trigger):
+            # 直接开始会话
+            self.start_session(trigger)
+            self.start_robot()
         elif trigger == 'finish':
             # 结束会话
             self.finish_session()
@@ -240,7 +322,7 @@ class IntegratedSystem:
         # 更新状态
         self.state.in_session = True
         self.state.session_start_time = time.time()
-        self.state.session_duration = duration_minutes
+        self.state.session_duration = float(duration_minutes)
         
         # 重置EEG模拟器
         if self.eeg_simulator:
@@ -267,11 +349,11 @@ class IntegratedSystem:
                         break
                     
                     # 获取EEG数据
-                    if self.state.simulation_mode:
-                        attention, stress = self.eeg_simulator.update(elapsed_minutes)
-                    else:
-                        # TODO: 从实际EEG设备获取数据
-                        attention, stress = 0.8, 0.2
+                    # if self.state.simulation_mode:
+                    attention, stress = self.eeg_simulator.update(elapsed_minutes)
+                    # else:
+                    #     # TODO: 从实际EEG设备获取数据
+                    #     attention, stress = 0.8, 0.2
                     
                     # 更新状态
                     self.state.current_attention = attention
@@ -348,11 +430,96 @@ class IntegratedSystem:
         """执行实际的机械臂递送"""
         try:
             # 向机械臂发送触发信号
-            if self.ser:
-                self.ser.write(b'true\n')
+            if self.tuya_ser:
+                self.tuya_ser.write(b'true\n')
                 print("📤 已发送机械臂触发信号")
             
             # TODO: 启动机械臂控制程序或等待完成信号
+            """主函数"""
+        
+            # 初始化目标位置为当前位置（整数）
+            target_positions = {
+            'shoulder_pan': 0.0,
+            'shoulder_lift': 0.0,
+            'elbow_flex': 0.0,
+            'wrist_flex': 0.0,
+            'wrist_roll': 0.0,
+            'gripper': 0.0
+            }
+            
+            # 初始化x,y坐标控制
+            x0, y0 = 0.1629, 0.1131
+            current_x, current_y = x0, y0
+            print(f"初始化末端执行器位置: x={current_x:.4f}, y={current_y:.4f}")
+            
+            # Initialize YOLO and camera
+            model = YOLO("yolov8n.pt")
+            
+            # Direct camera selection (fastest approach)
+            # camera_input = input("Enter camera ID (0/1/2) or press Enter for camera 0: ").strip()
+            # selected = int(camera_input) if camera_input.isdigit() else 0
+            selected = int(args.camera_id)
+            print(f"📷 Connecting to camera {selected}...")
+            cap = cv2.VideoCapture(selected)
+            
+            if cap.isOpened():
+                # Quick test read
+                ret, _ = cap.read()
+                if ret:
+                    # Set camera properties
+                    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                    print(f"✅ Camera {selected} ready!")
+                    vision_mode = True
+                else:
+                    print(f"❌ Camera {selected} cannot read frames")
+                    cap.release()
+                    cap = None
+                    vision_mode = False
+            else:
+                print(f"❌ Camera {selected} not available")
+                cap = None
+                vision_mode = False
+            
+            if not vision_mode:
+                print("⚠️  Continuing in keyboard-only mode")
+                model = None
+
+            print("键盘控制说明:")
+            print("- Q/A: 关节1 (shoulder_pan) 减少/增加")
+            print("- W/S: 控制末端执行器x坐标 (joint2+3)")
+            print("- E/D: 控制末端执行器y坐标 (joint2+3)")
+            print("- R/F: pitch调整 增加/减少 (影响wrist_flex)")
+            print("- T/G: 关节5 (wrist_roll) 减少/增加")
+            print("- Y/H: 关节6 (gripper) 减少/增加")
+            print("- X: 退出程序（先回到起始位置）")
+            print("- ESC: 退出程序")
+            print("="*50)
+            print("注意: 机器人会持续移动到目标位置")
+            
+            # 启用视觉控制
+            vision_mode = True
+            p_control_loop(self.robot, self.keyboard, target_positions, self.start_positions, current_x, current_y, kp=0.5, control_freq=50, model=model, cap=cap, vision_mode=vision_mode, ser=self.robot_ser)
+            
+            # 断开连接
+            self.robot.disconnect()
+            self.keyboard.disconnect()
+            if self.robot_ser is not None:
+                self.robot_ser.close()
+            cap.release()
+            cv2.destroyAllWindows()
+            print("程序结束")
+            
+        except Exception as e:
+            print(f"程序执行失败: {e}")
+            traceback.print_exc()
+            print("请检查:")
+            print("1. 机器人是否正确连接")
+            print("2. USB端口是否正确")
+            print("3. 是否有足够的权限访问USB设备")
+            print("4. 机器人是否已正确配置")
+
             
         except Exception as e:
             print(f"❌ 机械臂执行错误: {e}")
@@ -474,8 +641,8 @@ class IntegratedSystem:
             print("✅ [模拟] 机械臂已重置到零位置")
         else:
             # TODO: 发送重置命令到机械臂
-            if self.ser:
-                self.ser.write(b'reset\n')
+            if self.tuya_ser:
+                self.tuya_ser.write(b'reset\n')
     
     def show_status(self):
         """显示当前状态"""
@@ -505,8 +672,8 @@ class IntegratedSystem:
             self.finish_session()
         
         # 关闭串口
-        if self.ser and self.ser.is_open:
-            self.ser.close()
+        if self.tuya_ser and self.tuya_ser.is_open:
+            self.tuya_ser.close()
         
         print("✅ 清理完成")
 
@@ -516,8 +683,10 @@ def main():
     
     parser = argparse.ArgumentParser(description='智能专注力管理与机械臂控制系统')
     parser.add_argument('--real', action='store_true', help='使用实机模式（默认为模拟模式）')
-    parser.add_argument('--port', type=str, default='/dev/ttyACM0', help='串口设备')
-    
+    parser.add_argument('--tuya_port', type=str, default='/dev/ttyACM2', help='串口设备')
+    parser.add_argument('--robot_port', type=str, default='/dev/ttyACM0', help='串口设备')
+    parser.add_argument('--camera_id', type=int, default=2, help='camera ID (0/1/2)')
+    global args
     args = parser.parse_args()
     
     print("🧠 智能专注力管理与机械臂控制系统")
@@ -526,11 +695,10 @@ def main():
     # 创建系统实例
     system = IntegratedSystem(simulation_mode=not args.real)
     
-    if args.real:
-        system.config['serial_port'] = args.port
+    system.config['serial_port'] = args.tuya_port
     
     # 初始化
-    if not args.real or system.initialize_serial():
+    if system.initialize_serial():
         # 开始监听
         try:
             system.listen_for_triggers()

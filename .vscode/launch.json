@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: 带参数调试",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",  // 当前文件，或指定路径如 "${workspaceFolder}/main.py"
+            "args": ["--real", "--tuya_port", "/dev/ttyACM2", "--camera_id", "2", "--robot_port", "/dev/ttyACM0"],
+            "console": "integratedTerminal"
+        }
+    ]
+}

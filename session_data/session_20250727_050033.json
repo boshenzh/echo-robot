@@ -1,0 +1,32 @@
+{
+  "start_time": 1753563633.913392,
+  "end_time": 1753563760.6752095,
+  "duration_minutes": "60",
+  "attention_history": [
+    0.8191835244205005,
+    0.8083611627946289
+  ],
+  "stress_history": [
+    0.1605645734652858,
+    0.20126283566281947
+  ],
+  "break_times": [
+    1753563634.9180028
+  ],
+  "robot_triggers": [
+    {
+      "timestamp": 1753563634.9179993,
+      "reason": "\u6ce8\u610f\u529b\u8fc7\u4f4e(0.81)",
+      "attention": 0.8083611627946289,
+      "stress": 0.20126283566281947
+    }
+  ],
+  "statistics": {
+    "avg_attention": 0.8137723436075647,
+    "avg_stress": 0.18091370456405265,
+    "min_attention": 0.8083611627946289,
+    "max_stress": 0.20126283566281947,
+    "break_count": 1,
+    "robot_trigger_count": 1
+  }
+}

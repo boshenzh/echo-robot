@@ -1,0 +1,39 @@
+{
+  "start_time": 1753563955.508648,
+  "end_time": 1753563962.7929254,
+  "duration_minutes": "60",
+  "attention_history": [
+    0.8824413179261696,
+    0.8223114503475567
+  ],
+  "stress_history": [
+    0.21328438940797423,
+    0.21442677921608783
+  ],
+  "break_times": [
+    1753563955.5113409,
+    1753563957.3309464
+  ],
+  "robot_triggers": [
+    {
+      "timestamp": 1753563955.5113382,
+      "reason": "\u538b\u529b\u8fc7\u9ad8(0.21)",
+      "attention": 0.8824413179261696,
+      "stress": 0.21328438940797423
+    },
+    {
+      "timestamp": 1753563957.330942,
+      "reason": "\u538b\u529b\u8fc7\u9ad8(0.21)",
+      "attention": 0.8223114503475567,
+      "stress": 0.21442677921608783
+    }
+  ],
+  "statistics": {
+    "avg_attention": 0.8523763841368632,
+    "avg_stress": 0.21385558431203103,
+    "min_attention": 0.8223114503475567,
+    "max_stress": 0.21442677921608783,
+    "break_count": 2,
+    "robot_trigger_count": 2
+  }
+}

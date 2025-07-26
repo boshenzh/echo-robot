@@ -90,6 +90,8 @@ conda activate lerobot-yolo
 3. 安装额外依赖：
 ```bash
 pip install -r requirements_lerobot_yolo.txt
+pip install feetech-servo-sdk
+
 ```
 
 ## 使用方法

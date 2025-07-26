@@ -1,4 +1,23 @@
+## 集成要求
 
+### 环境安装
+
+1. 使用 `requirements.txt` 创建并激活环境。
+2. 克隆 LeRobot 仓库（指定 commit: `dacd1d7f`）到 `echo_robot` 目录下：
+    ```bash
+    git clone https://github.com/huggingface/lerobot.git
+    cd lerobot
+    git checkout dacd1d7f
+    ```
+3. 如有需要，安装 Feetech Servo SDK：
+    ```bash
+    pip install feetech-servo-sdk
+    ```
+4. 从 feature 分支安装所需的额外包。
+
+### 主程序集成
+
+- 编写主函数，监听 EEG 模块数据。e.g. 当接收到 `low_focus == True` 时，调用 `lerobot_yolo.py` 以启动视觉检测流程。
 
 # Echo Robot - 视觉分支
 

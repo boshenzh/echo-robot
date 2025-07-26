@@ -10,3 +10,10 @@ wheels/
 .venv
 calibration_images/*
 yolov8n.pt
+
+# EEG相关文件
+/.DS_Store
+/eeg_session_eeg_*.csv
+/eeg_session_metrics_*.csv
+/eeg_session_summary_*.json
+/eeg_snapshot_*.png

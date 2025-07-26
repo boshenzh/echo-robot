@@ -1,0 +1,146 @@
+{
+  "timestamp": "20250725_025020",
+  "device_info": {
+    "cortex_version": "4.7.11.1",
+    "headset": {
+      "connectedBy": "bluetooth",
+      "customName": "",
+      "dfuTypes": [
+        "dfuUsb"
+      ],
+      "dongle": "0",
+      "firmware": "27",
+      "firmwareDisplay": "0x27",
+      "headbandPosition": null,
+      "id": "MN8-1728",
+      "isDfuMode": false,
+      "isVirtual": false,
+      "motionSensors": [
+        "Q0",
+        "Q1",
+        "Q2",
+        "Q3"
+      ],
+      "sensors": [
+        "T7",
+        "T8"
+      ],
+      "settings": {
+        "eegRate": 128,
+        "eegRes": 14,
+        "memsRate": 6,
+        "memsRes": 10,
+        "mode": "MN8"
+      },
+      "status": "connected",
+      "virtualHeadsetId": ""
+    }
+  },
+  "eeg_channels": [],
+  "performance_metrics": [],
+  "mental_commands": [
+    "neutral",
+    "push",
+    "pull",
+    "lift",
+    "drop",
+    "left",
+    "right",
+    "rotateLeft",
+    "rotateRight",
+    "rotateClockwise",
+    "rotateCounterClockwise",
+    "rotateForwards",
+    "rotateReverse",
+    "disappear"
+  ],
+  "facial_expressions": [
+    "neutral",
+    "blink",
+    "winkL",
+    "winkR",
+    "horiEye",
+    "surprise",
+    "frown",
+    "smile",
+    "clench",
+    "laugh",
+    "smirkLeft",
+    "smirkRight"
+  ],
+  "analysis_results": {
+    "mentalCommand": {
+      "actions": [
+        "neutral",
+        "push",
+        "pull",
+        "lift",
+        "drop",
+        "left",
+        "right",
+        "rotateLeft",
+        "rotateRight",
+        "rotateClockwise",
+        "rotateCounterClockwise",
+        "rotateForwards",
+        "rotateReverse",
+        "disappear"
+      ],
+      "controls": [
+        "start",
+        "accept",
+        "reject",
+        "erase",
+        "reset"
+      ],
+      "events": [
+        "MC_Started",
+        "MC_Succeeded",
+        "MC_Failed",
+        "MC_Completed",
+        "MC_DataErased",
+        "MC_Rejected",
+        "MC_Reset",
+        "MC_AutoSamplingNeutralCompleted",
+        "MC_SignatureUpdated"
+      ],
+      "signature": []
+    },
+    "facialExpression": {
+      "actions": [
+        "neutral",
+        "blink",
+        "winkL",
+        "winkR",
+        "horiEye",
+        "surprise",
+        "frown",
+        "smile",
+        "clench",
+        "laugh",
+        "smirkLeft",
+        "smirkRight"
+      ],
+      "controls": [
+        "start",
+        "accept",
+        "reject",
+        "erase",
+        "reset"
+      ],
+      "events": [
+        "FE_Started",
+        "FE_Succeeded",
+        "FE_Failed",
+        "FE_Completed",
+        "FE_DataErased",
+        "FE_Rejected",
+        "FE_Reset"
+      ],
+      "signature": [
+        "universal",
+        "trained"
+      ]
+    }
+  }
+}

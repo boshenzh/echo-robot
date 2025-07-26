@@ -3,6 +3,7 @@
 #include "ui_focus.h"
 #include "font_awesome_symbols.h"
 #include "tuya_log.h"
+#include "tal_api.h"
 #include <stdio.h>
 
 // Navigation页面相关宏定义
@@ -249,6 +250,11 @@ static void __start_button_event_cb(lv_event_t *e)
         
         // 设置专注页面的时间
         ui_focus_set_time(sg_nav.selected_time);
+        
+        // 通过串口发送布尔值到电脑
+        const char *serial_msg = "true\n";
+        tal_uart_write(TUYA_UART_NUM_0, (const uint8_t *)serial_msg, strlen(serial_msg));
+        PR_INFO("Serial message sent: %s", serial_msg);
         
         // 发送MQTT start消息 - 暂时注释掉用于调试
         // extern int mqtt_manager_publish_start(bool start_value);

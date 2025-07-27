@@ -1,4 +1,4 @@
-默认分支为integration分支
+默认分支为```eeg2robot```分支
 
 ```
 python echo_robot/launcher.py
